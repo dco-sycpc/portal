@@ -1,22 +1,5 @@
 [
   {
-    "docNo": "DVX-2026-DPWH-RFA-AR-001",
-    "category": "RFA",
-    "trade": "Architectural",
-    "title": "Architectural Shop Drawing",
-    "revision": "01",
-    "status": "For Review",
-    "ballInCourt": "DPWH",
-    "date": "2026-08-09",
-    "dueDate": "2026-08-16",
-    "activityId": "",
-    "activityName": "",
-    "fileId": "",
-    "fileName": "",
-    "uploadedBy": ""
-    "link":""
-  },
-  {
     "docNo":"DVX-2026-DPWH-MAR-AR-020 R2",
     "category":"MAR",
     "trade":"Architectural",
