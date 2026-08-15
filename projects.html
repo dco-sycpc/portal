@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <!-- Shared navigation -->
+  <nav class="navbar">
+    <ul>
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="reports.html">Reports</a></li>
+      <li><a href="notifications.html">Notifications</a></li>
+    </ul>
+  </nav>    
+    
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Projects</title>
+
+<style>
+
+body{
+    margin:0;
+    font-family:Segoe UI,Arial,sans-serif;
+    background:#edf2f7;
+}
+
+header{
+    background:#0f172a;
+    color:white;
+    padding:20px;
+}
+
+.container{
+    padding:30px;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+    gap:20px;
+}
+
+.card{
+    background:white;
+    padding:25px;
+    border-radius:12px;
+    box-shadow:0 5px 15px rgba(0,0,0,.1);
+}
+
+.card h2{
+    margin-top:0;
+    color:#2563eb;
+}
+
+.card p{
+    color:#475569;
+}
+
+.button{
+    display:inline-block;
+    margin-top:15px;
+    padding:10px 20px;
+    background:#2563eb;
+    color:white;
+    text-decoration:none;
+    border-radius:6px;
+}
+
+.button:hover{
+    background:#1d4ed8;
+}
+
+.message{
+    background:white;
+    padding:25px;
+    border-radius:12px;
+    text-align:center;
+    color:#64748b;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+
+<h1>Projects</h1>
+
+</header>
+
+<div class="container">
+
+    <div id="projectsGrid" class="grid">
+        <!-- Projects will be loaded by projects.js -->
+    </div>
+
+</div>
+
+<script src="js/projects.js"></script>
+
+</body>
+</html>

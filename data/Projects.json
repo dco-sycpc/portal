@@ -1,0 +1,20 @@
+[
+     {
+        "id": "22-storey-multipurpose-building",
+        "name": "Multipurpose Building",
+        "description": "Housing Project",
+        "icon": "🏢"
+    },
+    {
+        "id": "government-center",
+        "name": "Government Center",
+        "description": "San Juan City Government Center Project",
+        "icon": "🏢"
+    },
+    {
+        "id": "school-cluster3",
+        "name": "School Cluster 3",
+        "description": "Schools Cluster Construction",
+        "icon": "🏫"
+    }
+]

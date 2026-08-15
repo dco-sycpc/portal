@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Project</title>
+
+<style>
+
+body{
+    margin:0;
+    font-family:Segoe UI,Arial,sans-serif;
+    background:#edf2f7;
+    color:#0f172a;
+}
+
+/* =========================
+   Header
+========================= */
+
+header{
+    background:#0f172a;
+    color:white;
+    padding:20px 30px;
+}
+
+.header-content{
+    max-width:1200px;
+    margin:auto;
+}
+
+.back-link{
+    color:#cbd5e1;
+    text-decoration:none;
+    font-size:14px;
+}
+
+.back-link:hover{
+    color:white;
+}
+
+header h1{
+    margin:12px 0 5px 0;
+}
+
+header p{
+    margin:0;
+    color:#cbd5e1;
+}
+
+/* =========================
+   Main Container
+========================= */
+
+.container{
+    max-width:1200px;
+    margin:auto;
+    padding:30px;
+}
+
+/* =========================
+   Workspace
+========================= */
+
+.workspace{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    gap:20px;
+}
+
+/* =========================
+   Module Cards
+========================= */
+
+.module{
+    background:white;
+    border-radius:12px;
+    padding:25px;
+
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+
+    transition:
+        transform .2s ease,
+        box-shadow .2s ease;
+}
+
+.module:hover{
+    transform:translateY(-3px);
+
+    box-shadow:
+        0 8px 20px rgba(0,0,0,.12);
+}
+
+.module-icon{
+    font-size:38px;
+    margin-bottom:15px;
+}
+
+.module h2{
+    margin:0 0 10px 0;
+    color:#2563eb;
+}
+
+.module p{
+    color:#64748b;
+    line-height:1.5;
+}
+
+.module-button{
+    display:inline-block;
+
+    margin-top:15px;
+
+    padding:10px 20px;
+
+    background:#2563eb;
+    color:white;
+
+    text-decoration:none;
+
+    border-radius:6px;
+
+    font-weight:500;
+}
+
+.module-button:hover{
+    background:#1d4ed8;
+}
+
+/* =========================
+   Loading / Error
+========================= */
+
+.message{
+    background:white;
+    padding:25px;
+    border-radius:12px;
+    text-align:center;
+    color:#64748b;
+}
+
+</style>
+
+</head>
+
+<body>
+
+
+<!-- =========================
+     HEADER
+========================= -->
+
+<header>
+
+<div class="header-content">
+
+<a
+    href="projects.html"
+    class="back-link"
+>
+    ← Back to Projects
+</a>
+
+<h1 id="projectName">
+    Loading Project...
+</h1>
+
+<p id="projectDescription">
+    Please wait...
+</p>
+
+</div>
+
+</header>
+
+
+<!-- =========================
+     MAIN
+========================= -->
+
+<div class="container">
+
+<div
+    id="projectWorkspace"
+    class="workspace"
+>
+
+<!-- Workspace modules will be loaded here -->
+
+</div>
+
+</div>
+
+
+<script src="js/project.js"></script>
+
+</body>
+
+</html>
