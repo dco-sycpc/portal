@@ -8,59 +8,34 @@
     "email": "john@devex.com",
     "role": "Document Controller",
     "projects": [
-      "government-center",
-      "medical-center",
-      "school-cluster3",
-      "22-storey-multipurpose-building",
-      "evacuation-center",
-      "crematorium"
+      "ortigas-project",
     ],
     "active": true
   },
 
   {
     "id": 2,
-    "username": "jimrose",
+    "username": "alex",
     "password": "123456",
-    "name": "Engr. Jimrose Beltran",
-    "position": "QA/QC Engineer",
-    "email": "jimrose@devex.com",
-    "role": "Engineer",
+    "name": "Jon Alex",
+    "position": "Operations Manager",
+    "email": "jonalex@sycpc.ph",
+    "role": "Operations Manager",
     "projects": [
-      "medical-center",
-      "government-center"
+      "ortigas-project",
     ],
     "active": true
   },
   {
     "id": 3,
-    "username": "tyrone",
-    "password": "Manager123",
-    "name": "Tyrone",
-    "position": "Manager",
-    "email": "tyronedhantomalon@devexinc.com",
-    "role": "Document Control Manager",
+    "username": "rowie",
+    "password": "admin1234",
+    "name": "Rowie",
+    "position": "Vice President",
+    "email": "rowie",
+    "role": "Administrator",
     "projects": [
-      "government-center",
-      "medical-center",
-      "school-cluster3",
-      "22-storey-multipurpose-building",
-      "evacuation-center",
-      "crematorium"
-    ],
-    "active": true
-  },
-
-  {
-    "id": 4,
-    "username": "wta",
-    "password": "123456",
-    "name": "WTA",
-    "position": "Reviewer",
-    "email": "wta@consultant.com",
-    "role": "Reviewer",
-    "projects": [
-      "medical-center"
+      "ortigas-project",
     ],
     "active": true
   }
