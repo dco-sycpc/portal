@@ -47,7 +47,7 @@ loginForm.addEventListener("submit", function (e) {
         const password = document.getElementById("password").value;
 
         const user = users.find(u =>
-            u.username === username &&
+            u.username.toLowerCase() === username.toLowerCase() &&
             u.password === password
         );
 
