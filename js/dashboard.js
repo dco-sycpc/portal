@@ -13,7 +13,8 @@ const projectFiles = [
     "data/school-cluster3.json",
     "data/medical-center.json",
     "data/evacuation-center.json",
-    "data/crematorium.json"
+    "data/crematorium.json",
+    "data/ortigas-project.json"
 ];
 
 const projectNames = {
@@ -22,7 +23,8 @@ const projectNames = {
     "school-cluster3": "School Cluster 3",
     "medical-center": "Medical Center",
     "evacuation-center": "Evacuation Center",
-    "crematorium": "Crematorium"
+    "crematorium": "Crematorium",
+    "ortigas-project": "Ortigas Project"
 };
 
 // Make documents available to the whole dashboard
