@@ -162,6 +162,7 @@ function displayDocuments(docs) {
         tbody.innerHTML += `
             <tr>
                 <td>${doc.docNo || ""}</td>
+                <td>${doc.category || ""}</td>
                 <td>${doc.project || ""}</td>
                 <td>${doc.title || ""}</td>
                 <td>${doc.status || ""}</td>
