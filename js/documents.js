@@ -285,7 +285,7 @@ function updateChart() {
     statusChart =
         new Chart(ctx, {
 
-            type: "doughnut",
+            type: "3-dPie",
 
             data: {
 
