@@ -39,7 +39,10 @@ const projectNames = {
         "San Juan Evacuation Center",
 
     "crematorium":
-        "San Juan Crematorium"
+        "San Juan Crematorium",
+
+    "ortigas-project":
+        "Ortigas Project"
 
 };
 
@@ -285,7 +288,7 @@ function updateChart() {
     statusChart =
         new Chart(ctx, {
 
-            type: "3-dPie",
+            type: "doughnut",
 
             data: {
 
