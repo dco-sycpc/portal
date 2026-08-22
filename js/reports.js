@@ -2,33 +2,46 @@
 // ==========================================
 // SYC DOCUMENT PORTAL
 // REPORT MANAGEMENT
+// GOOGLE DRIVE UPLOAD
 // ==========================================
+
+
+// ------------------------------------------
+// GOOGLE APPS SCRIPT WEB APP
+// ------------------------------------------
+
+const GOOGLE_UPLOAD_URL =
+    "https://script.google.com/macros/s/AKfycbyVjkz5snEoipvHE37Hfh-woQ_T7dJJYjBXQN5DONVmPj_8yio9NOhDkTp4wHN2Dk6r/exec";
 
 
 // ------------------------------------------
 // ELEMENTS
 // ------------------------------------------
 
-const reportForm = document.getElementById("reportForm");
-const clearButton = document.getElementById("clearButton");
-const uploadStatus = document.getElementById("uploadStatus");
-const reportTableBody = document.getElementById("reportTableBody");
+const reportForm =
+    document.getElementById("reportForm");
+
+const clearButton =
+    document.getElementById("clearButton");
+
+const uploadStatus =
+    document.getElementById("uploadStatus");
+
+const reportTableBody =
+    document.getElementById("reportTableBody");
 
 
 // ------------------------------------------
 // STORAGE KEY
 // ------------------------------------------
 
-const REPORT_STORAGE_KEY = "syc_reports";
+const REPORT_STORAGE_KEY =
+    "syc_reports";
 
 
 // ------------------------------------------
 // CURRENT USER
 // ------------------------------------------
-
-// Uses the logged-in username if available.
-// Change this later if your existing auth.js
-// uses another localStorage key.
 
 let currentUser =
     localStorage.getItem("username") ||
@@ -55,11 +68,14 @@ function loadReports() {
 
     try {
 
-        const reports = JSON.parse(storedReports);
+        const reports =
+            JSON.parse(storedReports);
 
         renderReports(reports);
 
-    } catch (error) {
+    }
+
+    catch (error) {
 
         console.error(
             "Unable to load reports:",
@@ -93,13 +109,15 @@ function saveReports(reports) {
 
 function generateReportId() {
 
-    const storedReports =
+    const reports =
         JSON.parse(
-            localStorage.getItem(REPORT_STORAGE_KEY) || "[]"
+            localStorage.getItem(
+                REPORT_STORAGE_KEY
+            ) || "[]"
         );
 
     const nextNumber =
-        storedReports.length + 1;
+        reports.length + 1;
 
     return "RPT-" +
         String(nextNumber).padStart(3, "0");
@@ -114,10 +132,13 @@ function generateReportId() {
 function formatDate(dateString) {
 
     if (!dateString) {
+
         return "";
+
     }
 
-    const date = new Date(dateString);
+    const date =
+        new Date(dateString);
 
     return date.toLocaleDateString(
         "en-PH",
@@ -135,17 +156,133 @@ function formatDate(dateString) {
 // SHOW STATUS
 // ------------------------------------------
 
-function showStatus(message, success = true) {
+function showStatus(
+    message,
+    success = true
+) {
 
-    uploadStatus.style.display = "block";
+    uploadStatus.style.display =
+        "block";
 
-    uploadStatus.textContent = message;
+    uploadStatus.textContent =
+        message;
 
     uploadStatus.style.background =
-        success ? "#dcfce7" : "#fee2e2";
+        success
+            ? "#dcfce7"
+            : "#fee2e2";
 
     uploadStatus.style.color =
-        success ? "#166534" : "#991b1b";
+        success
+            ? "#166534"
+            : "#991b1b";
+
+}
+
+
+// ------------------------------------------
+// CONVERT FILE TO BASE64
+// ------------------------------------------
+
+function fileToBase64(file) {
+
+    return new Promise(
+        function(resolve, reject) {
+
+            const reader =
+                new FileReader();
+
+            reader.onload =
+                function() {
+
+                    const result =
+                        reader.result;
+
+                    const base64 =
+                        result.split(",")[1];
+
+                    resolve(base64);
+
+                };
+
+            reader.onerror =
+                function(error) {
+
+                    reject(error);
+
+                };
+
+            reader.readAsDataURL(file);
+
+        }
+    );
+
+}
+
+
+// ------------------------------------------
+// UPLOAD TO GOOGLE DRIVE
+// ------------------------------------------
+
+async function uploadToGoogleDrive(
+    file
+) {
+
+    const base64Data =
+        await fileToBase64(file);
+
+
+    const payload = {
+
+        fileName:
+            file.name,
+
+        mimeType:
+            file.type ||
+            "application/octet-stream",
+
+        fileData:
+            base64Data
+
+    };
+
+
+    const response =
+        await fetch(
+            GOOGLE_UPLOAD_URL,
+            {
+
+                method: "POST",
+
+                headers: {
+
+                    "Content-Type":
+                        "text/plain;charset=utf-8"
+
+                },
+
+                body:
+                    JSON.stringify(payload)
+
+            }
+        );
+
+
+    const result =
+        await response.json();
+
+
+    if (!result.success) {
+
+        throw new Error(
+            result.message ||
+            "Google Drive upload failed."
+        );
+
+    }
+
+
+    return result;
 
 }
 
@@ -156,13 +293,15 @@ function showStatus(message, success = true) {
 
 reportForm.addEventListener(
     "submit",
-    function(event) {
+    async function(event) {
 
         event.preventDefault();
 
 
         const fileInput =
-            document.getElementById("reportFile");
+            document.getElementById(
+                "reportFile"
+            );
 
         const file =
             fileInput.files[0];
@@ -180,129 +319,199 @@ reportForm.addEventListener(
         }
 
 
-        // Get existing reports
+        /*
+         * Disable buttons during upload
+         */
 
-        const reports =
-            JSON.parse(
-                localStorage.getItem(
-                    REPORT_STORAGE_KEY
-                ) || "[]"
+        const uploadButton =
+            reportForm.querySelector(
+                ".btn-upload"
+            );
+
+        uploadButton.disabled =
+            true;
+
+        uploadButton.textContent =
+            "Uploading...";
+
+
+        try {
+
+            showStatus(
+                "Uploading report to Google Drive..."
             );
 
 
-        // Generate ID
+            /*
+             * Upload file
+             */
 
-        const reportId =
-            generateReportId();
-
-
-        // Create report record
-
-        const report = {
-
-            id: reportId,
-
-            reportNo:
-                document.getElementById(
-                    "reportNo"
-                ).value.trim(),
-
-            category:
-                document.getElementById(
-                    "category"
-                ).value,
-
-            title:
-                document.getElementById(
-                    "title"
-                ).value.trim(),
-
-            project:
-                document.getElementById(
-                    "project"
-                ).value.trim(),
-
-            period:
-                document.getElementById(
-                    "period"
-                ).value.trim(),
-
-            reportDate:
-                document.getElementById(
-                    "reportDate"
-                ).value,
-
-            preparedBy:
-                document.getElementById(
-                    "preparedBy"
-                ).value.trim(),
-
-            department:
-                document.getElementById(
-                    "department"
-                ).value.trim(),
-
-            remarks:
-                document.getElementById(
-                    "remarks"
-                ).value.trim(),
-
-            fileName:
-                file.name,
-
-            fileSize:
-                file.size,
-
-            fileType:
-                file.type,
-
-            uploadedBy:
-                currentUser,
-
-            uploadedDate:
-                new Date().toISOString(),
-
-            // Temporary local file reference.
-            // This will later become the
-            // Google Drive file ID/link.
-
-            fileLink: ""
-
-        };
+            const driveResult =
+                await uploadToGoogleDrive(
+                    file
+                );
 
 
-        // Add record
+            /*
+             * Get existing reports
+             */
 
-        reports.push(report);
-
-
-        // Save
-
-        saveReports(reports);
-
-
-        // Refresh table
-
-        renderReports(reports);
+            const reports =
+                JSON.parse(
+                    localStorage.getItem(
+                        REPORT_STORAGE_KEY
+                    ) || "[]"
+                );
 
 
-        // Show success
+            /*
+             * Generate report ID
+             */
 
-        showStatus(
-            "Report " +
-            report.reportNo +
-            " has been added successfully."
-        );
-
-
-        // Clear form
-
-        reportForm.reset();
+            const reportId =
+                generateReportId();
 
 
-        // Automatically restore today's date
+            /*
+             * Create report record
+             */
 
-        setTodayDate();
+            const report = {
+
+                id:
+                    reportId,
+
+                reportNo:
+                    document.getElementById(
+                        "reportNo"
+                    ).value.trim(),
+
+                category:
+                    document.getElementById(
+                        "category"
+                    ).value,
+
+                title:
+                    document.getElementById(
+                        "title"
+                    ).value.trim(),
+
+                project:
+                    document.getElementById(
+                        "project"
+                    ).value.trim(),
+
+                period:
+                    document.getElementById(
+                        "period"
+                    ).value.trim(),
+
+                reportDate:
+                    document.getElementById(
+                        "reportDate"
+                    ).value,
+
+                preparedBy:
+                    document.getElementById(
+                        "preparedBy"
+                    ).value.trim(),
+
+                department:
+                    document.getElementById(
+                        "department"
+                    ).value.trim(),
+
+                remarks:
+                    document.getElementById(
+                        "remarks"
+                    ).value.trim(),
+
+                fileName:
+                    driveResult.fileName,
+
+                fileId:
+                    driveResult.fileId,
+
+                fileLink:
+                    driveResult.fileUrl,
+
+                fileSize:
+                    file.size,
+
+                fileType:
+                    file.type,
+
+                uploadedBy:
+                    currentUser,
+
+                uploadedDate:
+                    new Date().toISOString()
+
+            };
+
+
+            /*
+             * Save report record
+             */
+
+            reports.push(report);
+
+            saveReports(reports);
+
+
+            /*
+             * Refresh table
+             */
+
+            renderReports(reports);
+
+
+            /*
+             * Success message
+             */
+
+            showStatus(
+                "Report uploaded successfully to Google Drive."
+            );
+
+
+            /*
+             * Clear form
+             */
+
+            reportForm.reset();
+
+            setTodayDate();
+
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Upload error:",
+                error
+            );
+
+
+            showStatus(
+                "Upload failed: " +
+                error.message,
+                false
+            );
+
+        }
+
+
+        finally {
+
+            uploadButton.disabled =
+                false;
+
+            uploadButton.textContent =
+                "Upload Report";
+
+        }
 
     }
 );
@@ -318,7 +527,8 @@ clearButton.addEventListener(
 
         reportForm.reset();
 
-        uploadStatus.style.display = "none";
+        uploadStatus.style.display =
+            "none";
 
         setTodayDate();
 
@@ -332,7 +542,8 @@ clearButton.addEventListener(
 
 function renderReports(reports) {
 
-    reportTableBody.innerHTML = "";
+    reportTableBody.innerHTML =
+        "";
 
 
     if (!reports.length) {
@@ -363,7 +574,9 @@ function renderReports(reports) {
     }
 
 
-    // Display newest first
+    /*
+     * Newest reports first
+     */
 
     const sortedReports =
         [...reports].reverse();
@@ -373,12 +586,16 @@ function renderReports(reports) {
         function(report) {
 
             const row =
-                document.createElement("tr");
+                document.createElement(
+                    "tr"
+                );
 
 
             const fileCell =
                 report.fileLink
+
                     ? `
+
                         <a
                             class="view-link"
                             href="${report.fileLink}"
@@ -386,52 +603,76 @@ function renderReports(reports) {
                         >
                             View File
                         </a>
+
                       `
+
                     : `
+
                         <span
-                            style="color:#6b7280;"
+                            style="
+                                color:#6b7280;
+                            "
                         >
-                            Pending Upload
+                            No File
                         </span>
+
                       `;
 
 
             row.innerHTML = `
 
                 <td>
-                    ${escapeHTML(report.reportNo)}
+                    ${escapeHTML(
+                        report.reportNo
+                    )}
                 </td>
 
                 <td>
-                    ${escapeHTML(report.category)}
+                    ${escapeHTML(
+                        report.category
+                    )}
                 </td>
 
                 <td>
-                    ${escapeHTML(report.title)}
+                    ${escapeHTML(
+                        report.title
+                    )}
                 </td>
 
                 <td>
-                    ${escapeHTML(report.project)}
+                    ${escapeHTML(
+                        report.project
+                    )}
                 </td>
 
                 <td>
-                    ${escapeHTML(report.period || "-")}
+                    ${escapeHTML(
+                        report.period || "-"
+                    )}
                 </td>
 
                 <td>
-                    ${formatDate(report.reportDate)}
+                    ${formatDate(
+                        report.reportDate
+                    )}
                 </td>
 
                 <td>
-                    ${escapeHTML(report.preparedBy)}
+                    ${escapeHTML(
+                        report.preparedBy
+                    )}
                 </td>
 
                 <td>
-                    ${escapeHTML(report.department || "-")}
+                    ${escapeHTML(
+                        report.department || "-"
+                    )}
                 </td>
 
                 <td>
-                    ${formatDate(report.uploadedDate)}
+                    ${formatDate(
+                        report.uploadedDate
+                    )}
                 </td>
 
                 <td>
@@ -441,7 +682,9 @@ function renderReports(reports) {
             `;
 
 
-            reportTableBody.appendChild(row);
+            reportTableBody.appendChild(
+                row
+            );
 
         }
     );
@@ -463,7 +706,8 @@ function setTodayDate() {
 
     document.getElementById(
         "reportDate"
-    ).value = today;
+    ).value =
+        today;
 
 }
 
@@ -474,7 +718,10 @@ function setTodayDate() {
 
 function escapeHTML(value) {
 
-    if (value === undefined || value === null) {
+    if (
+        value === undefined ||
+        value === null
+    ) {
 
         return "";
 
@@ -483,15 +730,30 @@ function escapeHTML(value) {
 
     return String(value)
 
-        .replace(/&/g, "&amp;")
+        .replace(
+            /&/g,
+            "&amp;"
+        )
 
-        .replace(/</g, "&lt;")
+        .replace(
+            /</g,
+            "&lt;"
+        )
 
-        .replace(/>/g, "&gt;")
+        .replace(
+            />/g,
+            "&gt;"
+        )
 
-        .replace(/"/g, "&quot;")
+        .replace(
+            /"/g,
+            "&quot;"
+        )
 
-        .replace(/'/g, "&#039;");
+        .replace(
+            /'/g,
+            "&#039;"
+        );
 
 }
 
