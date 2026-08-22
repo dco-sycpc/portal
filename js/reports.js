@@ -1,786 +1,506 @@
+```javascript
 // ==========================================
-// REPORTS REGISTER
-// ==========================================
-
-let documents = [];
-let statusChart;
-
-
-// ==========================================
-// PROJECT INFORMATION
+// SYC DOCUMENT PORTAL
+// REPORT MANAGEMENT
 // ==========================================
 
-const params = new URLSearchParams(
-    window.location.search
-);
 
-const project = params.get("project");
+// ------------------------------------------
+// ELEMENTS
+// ------------------------------------------
 
-
-// ==========================================
-// PROJECT NAMES
-// ==========================================
-
-const projectNames = {
-
-    "government-center":
-        "Government Center Project",
-
-    "22-storey-multipurpose-building":
-        "22-Storey Multipurpose Building",
-
-    "school-cluster3":
-        "School Cluster 3",
-
-    "medical-center":
-        "Medical Center",
-
-    "evacuation-center":
-        "San Juan Evacuation Center",
-
-    "crematorium":
-        "San Juan Crematorium",
-
-    "ortigas-project":
-        "Ortigas Project"
-
-};
+const reportForm = document.getElementById("reportForm");
+const clearButton = document.getElementById("clearButton");
+const uploadStatus = document.getElementById("uploadStatus");
+const reportTableBody = document.getElementById("reportTableBody");
 
 
-// ==========================================
-// CHECK PROJECT
-// ==========================================
+// ------------------------------------------
+// STORAGE KEY
+// ------------------------------------------
 
-if (!project) {
-
-    alert("No project selected.");
-
-    window.location.href =
-        "projects.html";
-
-}
+const REPORT_STORAGE_KEY = "syc_reports";
 
 
-// ==========================================
-// SET PROJECT TITLE
-// ==========================================
+// ------------------------------------------
+// CURRENT USER
+// ------------------------------------------
 
-const projectTitle =
-    document.getElementById("projectTitle");
+// Uses the logged-in username if available.
+// Change this later if your existing auth.js
+// uses another localStorage key.
 
-if (projectTitle) {
-
-    projectTitle.textContent =
-        "📄 " +
-        (projectNames[project] ||
-        "Document Register");
-
-}
+let currentUser =
+    localStorage.getItem("username") ||
+    localStorage.getItem("currentUser") ||
+    "Unknown User";
 
 
-// ==========================================
-// LOAD PROJECT DOCUMENTS
-// ==========================================
+// ------------------------------------------
+// LOAD REPORTS
+// ------------------------------------------
 
-async function loadDocuments() {
+function loadReports() {
+
+    const storedReports =
+        localStorage.getItem(REPORT_STORAGE_KEY);
+
+    if (!storedReports) {
+
+        renderReports([]);
+
+        return;
+
+    }
 
     try {
 
-        const response =
-            await fetch(`data/${project}.json`);
+        const reports = JSON.parse(storedReports);
 
-        if (!response.ok) {
+        renderReports(reports);
 
-            throw new Error(
-                `Project database not found: ${project}.json`
-            );
-
-        }
-
-        documents =
-            await response.json();
-
-        console.log(
-            `Loaded ${documents.length} documents for ${project}`
-        );
-
-        updateDashboard();
-
-        displayDocuments(documents);
-
-    }
-
-    catch (error) {
+    } catch (error) {
 
         console.error(
-            "Document loading error:",
+            "Unable to load reports:",
             error
         );
 
-        const table =
-            document.getElementById("tableBody");
-
-        if (table) {
-
-            table.innerHTML = `
-                <tr>
-                    <td colspan="8"
-                        style="text-align:center;">
-                        Unable to load project documents.
-                    </td>
-                </tr>
-            `;
-
-        }
+        renderReports([]);
 
     }
 
 }
 
 
-// ==========================================
-// DASHBOARD COUNTS
-// ==========================================
+// ------------------------------------------
+// SAVE REPORTS
+// ------------------------------------------
 
-function updateDashboard() {
+function saveReports(reports) {
 
-    document.getElementById("totalDocs").textContent =
-        documents.length;
-
-    document.getElementById("approvedDocs").textContent =
-        documents.filter(
-            d => d.status === "Approved"
-        ).length;
-
-    document.getElementById("approvedAsCorrectedDocs").textContent =
-        documents.filter(
-            d => d.status === "Approved As Corrected"
-        ).length;
-
-    document.getElementById("reviseResubmitDocs").textContent =
-        documents.filter(
-            d => d.status === "Revise & Resubmit"
-        ).length;
-
-    document.getElementById("submittedDocs").textContent =
-        documents.filter(
-            d => d.status === "Submitted"
-        ).length;
-
-    document.getElementById("draftDocs").textContent =
-        documents.filter(
-            d => d.status === "Draft"
-        ).length;
-
-    document.getElementById("cancelledDocs").textContent =
-        documents.filter(
-            d => d.status === "Cancelled"
-        ).length;
-
-    document.getElementById("supersededDocs").textContent =
-        documents.filter(
-            d => d.status === "Superseded"
-        ).length;
-
-
-    // ------------------------------
-    // Overdue
-    // ------------------------------
-
-    const overdueCount =
-        documents.filter(
-            isDocumentOverdue
-        ).length;
-
-    document.getElementById("overdueDocs").textContent =
-        overdueCount;
-
-
-    updateChart();
-
-}
-
-
-// ==========================================
-// CHECK OVERDUE
-// ==========================================
-
-function isDocumentOverdue(doc) {
-
-    if (doc.status !== "Submitted")
-        return false;
-
-    if (!doc.dueDate)
-        return false;
-
-    return (
-        new Date() >
-        new Date(doc.dueDate)
+    localStorage.setItem(
+        REPORT_STORAGE_KEY,
+        JSON.stringify(reports)
     );
 
 }
 
 
-// ==========================================
-// STATUS CHART
-// ==========================================
+// ------------------------------------------
+// GENERATE REPORT ID
+// ------------------------------------------
 
-function updateChart() {
+function generateReportId() {
 
-    const approved =
-        documents.filter(
-            d => d.status === "Approved"
-        ).length;
-
-    const approvedAsCorrected =
-        documents.filter(
-            d => d.status === "Approved As Corrected"
-        ).length;
-
-    const reviseResubmit =
-        documents.filter(
-            d => d.status === "Revise & Resubmit"
-        ).length;
-
-    const submitted =
-        documents.filter(
-            d => d.status === "Submitted"
-        ).length;
-
-    const draft =
-        documents.filter(
-            d => d.status === "Draft"
-        ).length;
-
-    const cancelled =
-        documents.filter(
-            d => d.status === "Cancelled"
-        ).length;
-
-    const superseded =
-        documents.filter(
-            d => d.status === "Superseded"
-        ).length;
-
-    const overdue =
-        documents.filter(
-            isDocumentOverdue
-        ).length;
-
-
-    if (statusChart) {
-
-        statusChart.destroy();
-
-    }
-
-
-    const ctx =
-        document.getElementById(
-            "statusChart"
+    const storedReports =
+        JSON.parse(
+            localStorage.getItem(REPORT_STORAGE_KEY) || "[]"
         );
 
+    const nextNumber =
+        storedReports.length + 1;
 
-    if (!ctx)
-        return;
-
-
-    statusChart =
-        new Chart(ctx, {
-
-            type: "doughnut",
-
-            data: {
-
-                labels: [
-
-                    "Approved",
-                    "Approved As Corrected",
-                    "Revise & Resubmit",
-                    "Submitted",
-                    "Draft",
-                    "Superseded",
-                    "Cancelled",
-                    "Overdue"
-
-                ],
-
-                datasets: [{
-
-                    data: [
-
-                        approved,
-                        approvedAsCorrected,
-                        reviseResubmit,
-                        submitted,
-                        draft,
-                        superseded,
-                        cancelled,
-                        overdue
-
-                    ],
-
-                    backgroundColor: [
-
-                        "#16a34a",
-                        "#FEBE1E",
-                        "#FE0000",
-                        "#765BFF",
-                        "#D2591C",
-                        "#D8E438",
-                        "#EDADAD",
-                        "#DC2626"
-
-                    ],
-
-                    borderWidth: 1
-
-                }]
-
-            },
-
-            options: {
-
-                responsive: true,
-
-                plugins: {
-
-                    legend: {
-
-                        position: "bottom"
-
-                    }
-
-                }
-
-            }
-
-        });
+    return "RPT-" +
+        String(nextNumber).padStart(3, "0");
 
 }
 
 
-// ==========================================
-// DISPLAY DOCUMENTS
-// ==========================================
+// ------------------------------------------
+// FORMAT DATE
+// ------------------------------------------
 
-function displayDocuments(list) {
+function formatDate(dateString) {
 
-    const table =
-        document.getElementById(
-            "tableBody"
-        );
+    if (!dateString) {
+        return "";
+    }
 
-    if (!table)
-        return;
+    const date = new Date(dateString);
 
+    return date.toLocaleDateString(
+        "en-PH",
+        {
+            year: "numeric",
+            month: "short",
+            day: "2-digit"
+        }
+    );
 
-    table.innerHTML = "";
-
-
-    list.forEach(doc => {
-
-        let statusClass = "";
-
-
-        const isOverdue =
-            isDocumentOverdue(doc);
+}
 
 
-        const displayStatus =
-            isOverdue
-                ? "Overdue"
-                : doc.status;
+// ------------------------------------------
+// SHOW STATUS
+// ------------------------------------------
+
+function showStatus(message, success = true) {
+
+    uploadStatus.style.display = "block";
+
+    uploadStatus.textContent = message;
+
+    uploadStatus.style.background =
+        success ? "#dcfce7" : "#fee2e2";
+
+    uploadStatus.style.color =
+        success ? "#166534" : "#991b1b";
+
+}
 
 
-        if (doc.status === "Approved")
-            statusClass =
-                "status-approved";
+// ------------------------------------------
+// FORM SUBMIT
+// ------------------------------------------
+
+reportForm.addEventListener(
+    "submit",
+    function(event) {
+
+        event.preventDefault();
 
 
-        if (
-            doc.status ===
-            "Approved As Corrected"
-        )
-            statusClass =
-                "status-approvedAsCorrected";
+        const fileInput =
+            document.getElementById("reportFile");
+
+        const file =
+            fileInput.files[0];
 
 
-        if (
-            doc.status ===
-            "Revise & Resubmit"
-        )
-            statusClass =
-                "status-reviseResubmit";
+        if (!file) {
 
+            showStatus(
+                "Please select a report file.",
+                false
+            );
 
-        if (doc.status === "Submitted")
-            statusClass =
-                "status-submitted";
-
-
-        if (isOverdue)
-            statusClass =
-                "status-overdue";
-
-
-        if (doc.status === "Draft")
-            statusClass =
-                "status-draft";
-
-
-        if (doc.status === "Cancelled")
-            statusClass =
-                "status-cancelled";
-
-
-        if (doc.status === "Superseded")
-            statusClass =
-                "status-superseded";
-
-
-        // ----------------------------------
-        // File link
-        // ----------------------------------
-
-        let fileCell = "—";
-
-
-        if (doc.link) {
-
-            fileCell = `
-                <a
-                    href="${doc.link}"
-                    target="_blank"
-                    class="view-btn"
-                >
-                    View
-                </a>
-            `;
+            return;
 
         }
 
 
-        table.innerHTML += `
+        // Get existing reports
+
+        const reports =
+            JSON.parse(
+                localStorage.getItem(
+                    REPORT_STORAGE_KEY
+                ) || "[]"
+            );
+
+
+        // Generate ID
+
+        const reportId =
+            generateReportId();
+
+
+        // Create report record
+
+        const report = {
+
+            id: reportId,
+
+            reportNo:
+                document.getElementById(
+                    "reportNo"
+                ).value.trim(),
+
+            category:
+                document.getElementById(
+                    "category"
+                ).value,
+
+            title:
+                document.getElementById(
+                    "title"
+                ).value.trim(),
+
+            project:
+                document.getElementById(
+                    "project"
+                ).value.trim(),
+
+            period:
+                document.getElementById(
+                    "period"
+                ).value.trim(),
+
+            reportDate:
+                document.getElementById(
+                    "reportDate"
+                ).value,
+
+            preparedBy:
+                document.getElementById(
+                    "preparedBy"
+                ).value.trim(),
+
+            department:
+                document.getElementById(
+                    "department"
+                ).value.trim(),
+
+            remarks:
+                document.getElementById(
+                    "remarks"
+                ).value.trim(),
+
+            fileName:
+                file.name,
+
+            fileSize:
+                file.size,
+
+            fileType:
+                file.type,
+
+            uploadedBy:
+                currentUser,
+
+            uploadedDate:
+                new Date().toISOString(),
+
+            // Temporary local file reference.
+            // This will later become the
+            // Google Drive file ID/link.
+
+            fileLink: ""
+
+        };
+
+
+        // Add record
+
+        reports.push(report);
+
+
+        // Save
+
+        saveReports(reports);
+
+
+        // Refresh table
+
+        renderReports(reports);
+
+
+        // Show success
+
+        showStatus(
+            "Report " +
+            report.reportNo +
+            " has been added successfully."
+        );
+
+
+        // Clear form
+
+        reportForm.reset();
+
+
+        // Automatically restore today's date
+
+        setTodayDate();
+
+    }
+);
+
+
+// ------------------------------------------
+// CLEAR BUTTON
+// ------------------------------------------
+
+clearButton.addEventListener(
+    "click",
+    function() {
+
+        reportForm.reset();
+
+        uploadStatus.style.display = "none";
+
+        setTodayDate();
+
+    }
+);
+
+
+// ------------------------------------------
+// RENDER REPORT TABLE
+// ------------------------------------------
+
+function renderReports(reports) {
+
+    reportTableBody.innerHTML = "";
+
+
+    if (!reports.length) {
+
+        reportTableBody.innerHTML = `
 
             <tr>
 
-                <td>
-                    ${doc.docNo || ""}
-                </td>
+                <td
+                    colspan="10"
+                    style="
+                        text-align:center;
+                        color:#6b7280;
+                        padding:25px;
+                    "
+                >
 
-                <td>
-                    ${doc.category || ""}
-                </td>
+                    No reports uploaded yet.
 
-                <td>
-                    ${doc.trade || ""}
-                </td>
-
-                <td>
-                    ${doc.title || ""}
-                </td>
-
-                <td>
-                    ${doc.revision || ""}
-                </td>
-
-                <td class="${statusClass}">
-                    ${displayStatus || ""}
-                </td>
-
-                <td>
-                    ${doc.date || ""}
-                </td>
-
-                <td>
-                    ${fileCell}
                 </td>
 
             </tr>
 
         `;
 
-    });
-
-
-    document.getElementById(
-        "recordCount"
-    ).innerHTML =
-        "Total Documents : <b>" +
-        list.length +
-        "</b>";
-
-}
-
-
-// ==========================================
-// FILTER ELEMENTS
-// ==========================================
-
-const search =
-    document.getElementById(
-        "searchBox"
-    );
-
-const status =
-    document.getElementById(
-        "statusFilter"
-    );
-
-const category =
-    document.getElementById(
-        "categoryFilter"
-    );
-
-const trade =
-    document.getElementById(
-        "tradeFilter"
-    );
-
-const sort =
-    document.getElementById(
-        "sortFilter"
-    );
-
-
-// ==========================================
-// FILTER DOCUMENTS
-// ==========================================
-
-function filterDocuments() {
-
-    const keyword =
-        search.value.toLowerCase();
-
-
-    const selectedStatus =
-        status.value;
-
-    const selectedCategory =
-        category.value;
-
-    const selectedTrade =
-        trade.value;
-
-
-    const filtered =
-        documents.filter(doc => {
-
-
-            const matchText =
-
-                (doc.docNo || "")
-                    .toLowerCase()
-                    .includes(keyword)
-
-                ||
-
-                (doc.title || "")
-                    .toLowerCase()
-                    .includes(keyword)
-
-                ||
-
-                (doc.category || "")
-                    .toLowerCase()
-                    .includes(keyword)
-
-                ||
-
-                (doc.trade || "")
-                    .toLowerCase()
-                    .includes(keyword)
-
-                ||
-
-                (doc.ballInCourt || "")
-                    .toLowerCase()
-                    .includes(keyword);
-
-
-            const isOverdue =
-                isDocumentOverdue(doc);
-
-
-            const matchStatus =
-
-                selectedStatus === ""
-
-                ||
-
-                (
-                    selectedStatus ===
-                    "Overdue"
-
-                    ? isOverdue
-
-                    : doc.status ===
-                      selectedStatus
-                );
-
-
-            const matchCategory =
-
-                selectedCategory === ""
-
-                ||
-
-                doc.category ===
-                selectedCategory;
-
-
-            const matchTrade =
-
-                selectedTrade === ""
-
-                ||
-
-                doc.trade ===
-                selectedTrade;
-
-
-            return (
-
-                matchText &&
-
-                matchStatus &&
-
-                matchCategory &&
-
-                matchTrade
-
-            );
-
-        });
-
-
-    // --------------------------------------
-    // Sorting
-    // --------------------------------------
-
-    switch (sort.value) {
-
-        case "date-desc":
-
-            filtered.sort(
-                (a, b) =>
-                    new Date(b.date) -
-                    new Date(a.date)
-            );
-
-            break;
-
-
-        case "date-asc":
-
-            filtered.sort(
-                (a, b) =>
-                    new Date(a.date) -
-                    new Date(b.date)
-            );
-
-            break;
-
-
-        case "doc-asc":
-
-            filtered.sort(
-                (a, b) =>
-                    (a.docNo || "")
-                        .localeCompare(
-                            b.docNo || ""
-                        )
-            );
-
-            break;
-
-
-        case "doc-desc":
-
-            filtered.sort(
-                (a, b) =>
-                    (b.docNo || "")
-                        .localeCompare(
-                            a.docNo || ""
-                        )
-            );
-
-            break;
-
-
-        case "title-asc":
-
-            filtered.sort(
-                (a, b) =>
-                    (a.title || "")
-                        .localeCompare(
-                            b.title || ""
-                        )
-            );
-
-            break;
-
-
-        case "title-desc":
-
-            filtered.sort(
-                (a, b) =>
-                    (b.title || "")
-                        .localeCompare(
-                            a.title || ""
-                        )
-            );
-
-            break;
+        return;
 
     }
 
 
-    displayDocuments(
-        filtered
+    // Display newest first
+
+    const sortedReports =
+        [...reports].reverse();
+
+
+    sortedReports.forEach(
+        function(report) {
+
+            const row =
+                document.createElement("tr");
+
+
+            const fileCell =
+                report.fileLink
+                    ? `
+                        <a
+                            class="view-link"
+                            href="${report.fileLink}"
+                            target="_blank"
+                        >
+                            View File
+                        </a>
+                      `
+                    : `
+                        <span
+                            style="color:#6b7280;"
+                        >
+                            Pending Upload
+                        </span>
+                      `;
+
+
+            row.innerHTML = `
+
+                <td>
+                    ${escapeHTML(report.reportNo)}
+                </td>
+
+                <td>
+                    ${escapeHTML(report.category)}
+                </td>
+
+                <td>
+                    ${escapeHTML(report.title)}
+                </td>
+
+                <td>
+                    ${escapeHTML(report.project)}
+                </td>
+
+                <td>
+                    ${escapeHTML(report.period || "-")}
+                </td>
+
+                <td>
+                    ${formatDate(report.reportDate)}
+                </td>
+
+                <td>
+                    ${escapeHTML(report.preparedBy)}
+                </td>
+
+                <td>
+                    ${escapeHTML(report.department || "-")}
+                </td>
+
+                <td>
+                    ${formatDate(report.uploadedDate)}
+                </td>
+
+                <td>
+                    ${fileCell}
+                </td>
+
+            `;
+
+
+            reportTableBody.appendChild(row);
+
+        }
     );
 
 }
 
 
-// ==========================================
-// EVENT LISTENERS
-// ==========================================
+// ------------------------------------------
+// SET TODAY'S DATE
+// ------------------------------------------
 
-if (search)
-    search.addEventListener(
-        "keyup",
-        filterDocuments
-    );
+function setTodayDate() {
 
-if (status)
-    status.addEventListener(
-        "change",
-        filterDocuments
-    );
-
-if (category)
-    category.addEventListener(
-        "change",
-        filterDocuments
-    );
-
-if (trade)
-    trade.addEventListener(
-        "change",
-        filterDocuments
-    );
-
-if (sort)
-    sort.addEventListener(
-        "change",
-        filterDocuments
-    );
+    const today =
+        new Date()
+        .toISOString()
+        .split("T")[0];
 
 
-// ==========================================
-// START
-// ==========================================
+    document.getElementById(
+        "reportDate"
+    ).value = today;
 
-loadDocuments();
+}
+
+
+// ------------------------------------------
+// ESCAPE HTML
+// ------------------------------------------
+
+function escapeHTML(value) {
+
+    if (value === undefined || value === null) {
+
+        return "";
+
+    }
+
+
+    return String(value)
+
+        .replace(/&/g, "&amp;")
+
+        .replace(/</g, "&lt;")
+
+        .replace(/>/g, "&gt;")
+
+        .replace(/"/g, "&quot;")
+
+        .replace(/'/g, "&#039;");
+
+}
+
+
+// ------------------------------------------
+// INITIALIZE
+// ------------------------------------------
+
+setTodayDate();
+
+loadReports();
+```
