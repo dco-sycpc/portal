@@ -171,7 +171,7 @@ async function loadReports(); {
      showStatus("No reports found.", false);
    }
   } catch (error) {
-    console.error("Lord error:", error);
+    console.error("Load error:", error);
     showStatus("Failed to load reports: " + error.message, false);
   }
 }  
