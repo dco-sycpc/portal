@@ -11,7 +11,7 @@
 // ------------------------------------------
 
 const GOOGLE_UPLOAD_URL =
-    "https://script.google.com/macros/s/AKfycbyVjkz5snEoipvHE37Hfh-woQ_T7dJJYjBXQN5DONVmPj_8yio9NOhDkTp4wHN2Dk6r/exec";
+    "https://script.google.com/macros/s/AKfycbxyIYBToAvBgsC0WfAkHJSkk6l1FyvaXxBcTqx5lUeoqRiqmCZJOa85wV6I9swWFCyp/exec";
 
 
 // ------------------------------------------
