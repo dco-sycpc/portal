@@ -23,7 +23,7 @@ async function uploadReport(event) {
         category: document.getElementById("category").value.trim(),
         title: document.getElementById("title").value.trim(),
         project: document.getElementById("project").value.trim(),
-        period: document.getElementById("period").value.trim(),
+        reortingPeriod: document.getElementById("reportingPeriod").value.trim(),
         reportDate: document.getElementById("reportDate").value,
         preparedBy: document.getElementById("preparedBy").value.trim(),
         department: document.getElementById("department").value.trim(),
