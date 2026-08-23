@@ -36,7 +36,7 @@ async function uploadReport(event) {
       };
 
       const response = await fetch(
-        "https://script.google.com/macros/s/AKfycbxRqNkwT5SkrW-dy8yu4XTpt-JeS8Jx28a_GdGq5lFhGdobot0kAlgH1LnadAS4vBYq/exec",
+        "https://script.google.com/macros/library/d/1Pb9WUwPZs9PFT94XDJ5X4QDbYbrYYfjJtFpwoqHE_jT9sSh8qWYV5Lvj/2",
         {
           method: "POST",
           body: JSON.stringify(report),
@@ -160,7 +160,7 @@ setTodayDate();
 async function loadReports(); {
   try {
     const response = await fetch(
-      "https://script.google.com/macros/s/AKfycbxRqNkwT5SkrW-dy8yu4XTpt-JeS8Jx28a_GdGq5lFhGdobot0kAlgH1LnadAS4vBYq/exec"
+      "https://script.google.com/macros/library/d/1Pb9WUwPZs9PFT94XDJ5X4QDbYbrYYfjJtFpwoqHE_jT9sSh8qWYV5Lvj/2"
    );
    const result = await response.json();
 
