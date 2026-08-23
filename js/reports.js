@@ -117,7 +117,7 @@ function renderReports(reports) {
       <td>${escapeHTML(report.category)}</td>
       <td>${escapeHTML(report.title)}</td>
       <td>${escapeHTML(report.project)}</td>
-      <td>${escapeHTML(report.period || "-")}</td>
+      <td>${escapeHTML(report.reportingPeriod || "-")}</td>
       <td>${formatDate(report.reportDate)}</td>
       <td>${escapeHTML(report.preparedBy)}</td>
       <td>${escapeHTML(report.department || "-")}</td>
