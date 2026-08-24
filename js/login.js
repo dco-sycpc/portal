@@ -18,10 +18,10 @@ const users = [
         role: "Administrator"
     },
     {
-        username: "jim",
+        username: "jon",
         password: "12345",
-        fullname: "Jimrose",
-        role: "QAQC"
+        fullname: "Jon Alex",
+        role: "Operations Manager"
     },
     {
         username: "john",
