@@ -159,20 +159,17 @@ async function loadDocuments() {
         // ----------------------------------
         // FILTER CURRENT PROJECT
         // ----------------------------------
-
         documents =
             allDocuments.filter(
-                doc =>
-                    String(
-                        doc.Project || ""
-                    ).trim()
-                    ===
-                    String(
-                        projectNames[project] ||
-                        project
-                    ).trim()
-            );
-
+        doc =>
+            String(
+                doc.Project || ""
+            ).trim()
+            ===
+            String(
+                project
+            ).trim()
+    );
 
         console.log(
             "Documents for project:",
