@@ -1285,4 +1285,633 @@ function escapeHTML(
 // START
 // ==========================================
 
+// ==========================================
+// UPLOAD DOCUMENT
+// ==========================================
+
+const openUploadBtn =
+    document.getElementById("openUploadBtn");
+
+const closeUploadBtn =
+    document.getElementById("closeUploadBtn");
+
+const cancelUploadBtn =
+    document.getElementById("cancelUploadBtn");
+
+const uploadModal =
+    document.getElementById("uploadModal");
+
+const uploadForm =
+    document.getElementById("uploadForm");
+
+const uploadFile =
+    document.getElementById("uploadFile");
+
+const uploadFileInfo =
+    document.getElementById("uploadFileInfo");
+
+const uploadMessage =
+    document.getElementById("uploadMessage");
+
+const submitUploadBtn =
+    document.getElementById("submitUploadBtn");
+
+const uploadProject =
+    document.getElementById("uploadProject");
+
+
+// ==========================================
+// OPEN UPLOAD MODAL
+// ==========================================
+
+if (openUploadBtn) {
+
+    openUploadBtn.addEventListener(
+        "click",
+        function () {
+
+            if (!uploadModal) {
+                return;
+            }
+
+            // Set current project automatically
+            if (uploadProject) {
+
+                uploadProject.value =
+                    projectNames[project] ||
+                    project ||
+                    "";
+
+            }
+
+            // Clear previous message
+            if (uploadMessage) {
+
+                uploadMessage.textContent = "";
+
+                uploadMessage.className =
+                    "upload-message";
+
+            }
+
+            uploadModal.classList.add("show");
+
+        }
+    );
+
+}
+
+
+// ==========================================
+// CLOSE UPLOAD MODAL
+// ==========================================
+
+function closeUploadModal() {
+
+    if (!uploadModal) {
+        return;
+    }
+
+    uploadModal.classList.remove("show");
+
+}
+
+
+// ==========================================
+// CLOSE BUTTON
+// ==========================================
+
+if (closeUploadBtn) {
+
+    closeUploadBtn.addEventListener(
+        "click",
+        closeUploadModal
+    );
+
+}
+
+
+// ==========================================
+// CANCEL BUTTON
+// ==========================================
+
+if (cancelUploadBtn) {
+
+    cancelUploadBtn.addEventListener(
+        "click",
+        closeUploadModal
+    );
+
+}
+
+
+// ==========================================
+// CLOSE WHEN CLICKING OUTSIDE MODAL
+// ==========================================
+
+if (uploadModal) {
+
+    uploadModal.addEventListener(
+        "click",
+        function (event) {
+
+            if (
+                event.target ===
+                uploadModal
+            ) {
+
+                closeUploadModal();
+
+            }
+
+        }
+    );
+
+}
+
+
+// ==========================================
+// ESC KEY CLOSE
+// ==========================================
+
+document.addEventListener(
+    "keydown",
+    function (event) {
+
+        if (
+            event.key === "Escape" &&
+            uploadModal &&
+            uploadModal.classList.contains("show")
+        ) {
+
+            closeUploadModal();
+
+        }
+
+    }
+);
+
+
+// ==========================================
+// FILE INFORMATION
+// ==========================================
+
+if (uploadFile) {
+
+    uploadFile.addEventListener(
+        "change",
+        function () {
+
+            if (!uploadFile.files.length) {
+
+                uploadFileInfo.textContent =
+                    "Select the document to upload.";
+
+                return;
+
+            }
+
+            const file =
+                uploadFile.files[0];
+
+            const sizeMB =
+                (
+                    file.size /
+                    (1024 * 1024)
+                ).toFixed(2);
+
+            uploadFileInfo.textContent =
+                file.name +
+                " (" +
+                sizeMB +
+                " MB)";
+
+        }
+    );
+
+}
+
+
+// ==========================================
+// FILE TO BASE64
+// ==========================================
+
+function fileToBase64(file) {
+
+    return new Promise(
+        function (resolve, reject) {
+
+            const reader =
+                new FileReader();
+
+            reader.onload = function () {
+
+                const result =
+                    reader.result;
+
+                // Remove:
+                // data:application/pdf;base64,
+                // data:image/png;base64,
+                // etc.
+
+                const base64 =
+                    result.split(",")[1];
+
+                resolve(base64);
+
+            };
+
+            reader.onerror = function () {
+
+                reject(
+                    new Error(
+                        "Unable to read selected file."
+                    )
+                );
+
+            };
+
+            reader.readAsDataURL(file);
+
+        }
+    );
+
+}
+
+
+// ==========================================
+// SHOW UPLOAD MESSAGE
+// ==========================================
+
+function showUploadMessage(
+    message,
+    type
+) {
+
+    if (!uploadMessage) {
+        return;
+    }
+
+    uploadMessage.textContent =
+        message;
+
+    uploadMessage.className =
+        "upload-message " +
+        type;
+
+}
+
+
+// ==========================================
+// UPLOAD FORM SUBMISSION
+// ==========================================
+
+if (uploadForm) {
+
+    uploadForm.addEventListener(
+        "submit",
+        async function (event) {
+
+            event.preventDefault();
+
+
+            // ----------------------------------
+            // CHECK FILE
+            // ----------------------------------
+
+            if (
+                !uploadFile ||
+                !uploadFile.files.length
+            ) {
+
+                showUploadMessage(
+                    "Please select a document file.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            const file =
+                uploadFile.files[0];
+
+
+            // ----------------------------------
+            // CHECK PROJECT
+            // ----------------------------------
+
+            const currentProject =
+                project;
+
+
+            if (!currentProject) {
+
+                showUploadMessage(
+                    "No project selected.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            // ----------------------------------
+            // CHECK CATEGORY
+            // ----------------------------------
+
+            const categoryValue =
+                document.getElementById(
+                    "uploadCategory"
+                ).value;
+
+
+            if (!categoryValue) {
+
+                showUploadMessage(
+                    "Please select a document category.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            // ----------------------------------
+            // DISABLE BUTTON
+            // ----------------------------------
+
+            if (submitUploadBtn) {
+
+                submitUploadBtn.disabled =
+                    true;
+
+                submitUploadBtn.textContent =
+                    "Uploading...";
+
+            }
+
+
+            showUploadMessage(
+                "Uploading document. Please wait...",
+                "success"
+            );
+
+
+            try {
+
+                // ----------------------------------
+                // CONVERT FILE TO BASE64
+                // ----------------------------------
+
+                const fileData =
+                    await fileToBase64(file);
+
+
+                // ----------------------------------
+                // COLLECT FORM DATA
+                // ----------------------------------
+
+                const data = {
+
+                    fileName:
+                        file.name,
+
+                    fileData:
+                        fileData,
+
+                    mimeType:
+                        file.type ||
+                        "application/octet-stream",
+
+                    project:
+                        currentProject,
+
+                    docNo:
+                        document.getElementById(
+                            "uploadDocNo"
+                        ).value.trim(),
+
+                    category:
+                        categoryValue,
+
+                    trade:
+                        document.getElementById(
+                            "uploadTrade"
+                        ).value,
+
+                    title:
+                        document.getElementById(
+                            "uploadTitle"
+                        ).value.trim(),
+
+                    revision:
+                        document.getElementById(
+                            "uploadRevision"
+                        ).value.trim() ||
+                        "00",
+
+                    status:
+                        document.getElementById(
+                            "uploadStatus"
+                        ).value,
+
+                    date:
+                        document.getElementById(
+                            "uploadDate"
+                        ).value,
+
+                    dueDate:
+                        document.getElementById(
+                            "uploadDueDate"
+                        ).value,
+
+                    ballInCourt:
+                        document.getElementById(
+                            "uploadBallInCourt"
+                        ).value.trim(),
+
+                    activityId:
+                        document.getElementById(
+                            "uploadActivityId"
+                        ).value.trim(),
+
+                    activityName:
+                        document.getElementById(
+                            "uploadActivityName"
+                        ).value.trim(),
+
+                    preparedBy:
+                        document.getElementById(
+                            "uploadPreparedBy"
+                        ).value.trim(),
+
+                    submittedBy:
+                        document.getElementById(
+                            "uploadSubmittedBy"
+                        ).value.trim(),
+
+                    remarks:
+                        document.getElementById(
+                            "uploadRemarks"
+                        ).value.trim(),
+
+                    uploadedBy:
+                        "Document Controller"
+
+                };
+
+
+                // ----------------------------------
+                // SEND TO GOOGLE APPS SCRIPT
+                // ----------------------------------
+
+                const response =
+                    await fetch(
+                        GOOGLE_DOCUMENT_API,
+                        {
+
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "text/plain;charset=utf-8"
+                            },
+
+                            body:
+                                JSON.stringify(data)
+
+                        }
+                    );
+
+
+                // ----------------------------------
+                // READ RESPONSE
+                // ----------------------------------
+
+                const result =
+                    await response.json();
+
+
+                console.log(
+                    "Upload response:",
+                    result
+                );
+
+
+                // ----------------------------------
+                // CHECK RESULT
+                // ----------------------------------
+
+                if (
+                    !result.success
+                ) {
+
+                    throw new Error(
+                        result.message ||
+                        "Upload failed."
+                    );
+
+                }
+
+
+                // ----------------------------------
+                // SUCCESS
+                // ----------------------------------
+
+                showUploadMessage(
+                    "Document uploaded successfully.",
+                    "success"
+                );
+
+
+                // ----------------------------------
+                // RESET FORM
+                // ----------------------------------
+
+                uploadForm.reset();
+
+
+                // Restore project
+                if (uploadProject) {
+
+                    uploadProject.value =
+                        projectNames[project] ||
+                        project ||
+                        "";
+
+                }
+
+
+                if (uploadFileInfo) {
+
+                    uploadFileInfo.textContent =
+                        "Select the document to upload.";
+
+                }
+
+
+                // ----------------------------------
+                // REFRESH REGISTER
+                // ----------------------------------
+
+                await loadDocuments();
+
+
+                // ----------------------------------
+                // CLOSE AFTER SHORT DELAY
+                // ----------------------------------
+
+                setTimeout(
+                    function () {
+
+                        closeUploadModal();
+
+                    },
+                    800
+                );
+
+
+            }
+            catch (error) {
+
+                console.error(
+                    "Upload error:",
+                    error
+                );
+
+
+                showUploadMessage(
+                    error.message ||
+                    "Unable to upload document.",
+                    "error"
+                );
+
+            }
+            finally {
+
+                // ----------------------------------
+                // RESTORE BUTTON
+                // ----------------------------------
+
+                if (submitUploadBtn) {
+
+                    submitUploadBtn.disabled =
+                        false;
+
+                    submitUploadBtn.textContent =
+                        "Upload Document";
+
+                }
+
+            }
+
+        }
+    );
+
+}
+
 loadDocuments();
