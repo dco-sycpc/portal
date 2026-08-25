@@ -767,7 +767,7 @@ function displayDocuments(
 
                 <td>
                     ${escapeHTML(
-                        doc.DocumentNo
+                        doc.DocNo
                     )}
                 </td>
 
@@ -908,14 +908,14 @@ function filterDocuments() {
 
                 const matchText = [
 
-                    doc.DocumentNo,
+                    doc.DocNo,
                     doc.Category,
                     doc.Trade,
                     doc.Title,
                     doc.Revision,
                     doc.Status,
                     doc.BallInCourt,
-                    doc.ActivityId,
+                    doc.ActivityID,
                     doc.ActivityName
 
                 ]
@@ -1035,13 +1035,12 @@ function filterDocuments() {
             filtered.sort(
                 (a, b) =>
                     String(
-                        a.DocumentNo ||
+                        a.DocNo ||
                         ""
                     )
                     .localeCompare(
                         String(
-                            b.DocumentNo ||
-                            ""
+                            b.DocNo || ""
                         )
                     )
             );
@@ -1054,13 +1053,11 @@ function filterDocuments() {
             filtered.sort(
                 (a, b) =>
                     String(
-                        b.DocumentNo ||
-                        ""
+                        b.DocNo || ""
                     )
                     .localeCompare(
                         String(
-                            a.DocumentNo ||
-                            ""
+                            a.DocNo || ""
                         )
                     )
             );
