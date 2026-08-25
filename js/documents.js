@@ -5,7 +5,7 @@
 // ==========================================
 
 const GOOGLE_DOCUMENT_API =
-    "https://script.google.com/macros/s/AKfycbzF9PgRT2Eogm8YhobYNhYQToxmmBwKJbM8Q0RrlYSULOlMYAlWgH3w7C9Sr_DIkVw/exec";
+    "https://script.google.com/macros/s/AKfycbzm1xOr9HoYJOiJViLZsWAMSv1WG71be1A0itxmM1RsrT9esaD_q4ZeNx4WeEUlWZsi/exec";
 
 
 // ==========================================
