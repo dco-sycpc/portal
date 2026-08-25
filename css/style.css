@@ -14,9 +14,9 @@ table{
 th{
     background:#1e3a8a;
     color:white;
-    padding:14px;
+    padding:12px;
     text-align:left;
-    font-size:14px;
+    font-size:12px;
 }
 
 td{
@@ -181,7 +181,7 @@ table{
 =========================== */
 
 .logo {
-    width: 120px;
+    width: 100px;
     height: auto;
     display: block;
     margin: 0 auto 20px auto;
