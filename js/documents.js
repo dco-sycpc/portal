@@ -1,5 +1,15 @@
 // ==========================================
-// DOCUMENT REGISTER
+// SYC DOCUMENT PORTAL
+// PROJECT DOCUMENT REGISTER
+// Google Apps Script + Google Sheets
+// ==========================================
+
+const GOOGLE_DOCUMENT_API =
+    "https://script.google.com/macros/s/AKfycbzF9PgRT2Eogm8YhobYNhYQToxmmBwKJbM8Q0RrlYSULOlMYAlWgH3w7C9Sr_DIkVw/exec";
+
+
+// ==========================================
+// DATA
 // ==========================================
 
 let documents = [];
@@ -10,39 +20,38 @@ let statusChart;
 // PROJECT INFORMATION
 // ==========================================
 
-const params = new URLSearchParams(
-    window.location.search
-);
+const params =
+    new URLSearchParams(
+        window.location.search
+    );
 
-const project = params.get("project");
+const project =
+    params.get("project");
 
 
 // ==========================================
-// PROJECT NAMES
+// ELEMENTS
+// ==========================================
+
+const projectTitle =
+    document.getElementById(
+        "projectTitle"
+    );
+
+const tableBody =
+    document.getElementById(
+        "tableBody"
+    );
+
+
+// ==========================================
+// PROJECT NAME
 // ==========================================
 
 const projectNames = {
 
-    "government-center":
-        "Government Center Project",
-
-    "22-storey-multipurpose-building":
-        "22-Storey Multipurpose Building",
-
-    "school-cluster3":
-        "School Cluster 3",
-
-    "medical-center":
-        "Medical Center",
-
-    "evacuation-center":
-        "San Juan Evacuation Center",
-
-    "crematorium":
-        "San Juan Crematorium",
-
-    "ortigas-project":
-        "Ortigas Project"
+    "syc-subway-project":
+        "SYC Subway Project"
 
 };
 
@@ -53,7 +62,9 @@ const projectNames = {
 
 if (!project) {
 
-    alert("No project selected.");
+    alert(
+        "No project selected."
+    );
 
     window.location.href =
         "projects.html";
@@ -62,51 +73,119 @@ if (!project) {
 
 
 // ==========================================
-// SET PROJECT TITLE
+// PROJECT TITLE
 // ==========================================
-
-const projectTitle =
-    document.getElementById("projectTitle");
 
 if (projectTitle) {
 
     projectTitle.textContent =
         "📄 " +
-        (projectNames[project] ||
-        "Document Register");
+        (
+            projectNames[project] ||
+            project
+        );
 
 }
 
 
 // ==========================================
-// LOAD PROJECT DOCUMENTS
+// LOAD DOCUMENTS
 // ==========================================
 
 async function loadDocuments() {
 
     try {
 
+        if (tableBody) {
+
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="10"
+                        style="text-align:center;padding:25px;">
+                        Loading documents...
+                    </td>
+                </tr>
+            `;
+
+        }
+
+
         const response =
-            await fetch(`data/${project}.json`);
+            await fetch(
+                GOOGLE_DOCUMENT_API
+            );
+
 
         if (!response.ok) {
 
             throw new Error(
-                `Project database not found: ${project}.json`
+                "Server returned HTTP " +
+                response.status
             );
 
         }
 
-        documents =
+
+        const result =
             await response.json();
 
+
         console.log(
-            `Loaded ${documents.length} documents for ${project}`
+            "Document API response:",
+            result
         );
+
+
+        if (
+            !result.success
+        ) {
+
+            throw new Error(
+                result.message ||
+                "Unable to load documents."
+            );
+
+        }
+
+
+        const allDocuments =
+            Array.isArray(
+                result.documents
+            )
+                ? result.documents
+                : [];
+
+
+        // ----------------------------------
+        // FILTER CURRENT PROJECT
+        // ----------------------------------
+
+        documents =
+            allDocuments.filter(
+                doc =>
+                    String(
+                        doc.Project || ""
+                    ).trim()
+                    ===
+                    String(
+                        projectNames[project] ||
+                        project
+                    ).trim()
+            );
+
+
+        console.log(
+            "Documents for project:",
+            documents
+        );
+
 
         updateDashboard();
 
-        displayDocuments(documents);
+        displayDocuments(
+            documents
+        );
+
 
     }
 
@@ -117,18 +196,35 @@ async function loadDocuments() {
             error
         );
 
-        const table =
-            document.getElementById("tableBody");
 
-        if (table) {
+        if (tableBody) {
 
-            table.innerHTML = `
+            tableBody.innerHTML = `
+
                 <tr>
-                    <td colspan="8"
-                        style="text-align:center;">
-                        Unable to load project documents.
+
+                    <td
+                        colspan="10"
+                        style="
+                            text-align:center;
+                            padding:25px;
+                            color:#dc2626;
+                        "
+                    >
+
+                        Unable to load the
+                        Document Register.
+
+                        <br><br>
+
+                        ${escapeHTML(
+                            error.message
+                        )}
+
                     </td>
+
                 </tr>
+
             `;
 
         }
@@ -139,61 +235,101 @@ async function loadDocuments() {
 
 
 // ==========================================
-// DASHBOARD COUNTS
+// DASHBOARD
 // ==========================================
 
 function updateDashboard() {
 
-    document.getElementById("totalDocs").textContent =
+    document.getElementById(
+        "totalDocs"
+    ).textContent =
         documents.length;
 
-    document.getElementById("approvedDocs").textContent =
-        documents.filter(
-            d => d.status === "Approved"
-        ).length;
 
-    document.getElementById("approvedAsCorrectedDocs").textContent =
-        documents.filter(
-            d => d.status === "Approved As Corrected"
-        ).length;
+    document.getElementById(
+        "approvedDocs"
+    ).textContent =
 
-    document.getElementById("reviseResubmitDocs").textContent =
         documents.filter(
-            d => d.status === "Revise & Resubmit"
-        ).length;
-
-    document.getElementById("submittedDocs").textContent =
-        documents.filter(
-            d => d.status === "Submitted"
-        ).length;
-
-    document.getElementById("draftDocs").textContent =
-        documents.filter(
-            d => d.status === "Draft"
-        ).length;
-
-    document.getElementById("cancelledDocs").textContent =
-        documents.filter(
-            d => d.status === "Cancelled"
-        ).length;
-
-    document.getElementById("supersededDocs").textContent =
-        documents.filter(
-            d => d.status === "Superseded"
+            d =>
+                d.Status ===
+                "Approved"
         ).length;
 
 
-    // ------------------------------
-    // Overdue
-    // ------------------------------
+    document.getElementById(
+        "approvedAsCorrectedDocs"
+    ).textContent =
 
-    const overdueCount =
+        documents.filter(
+            d =>
+                d.Status ===
+                "Approved As Corrected"
+        ).length;
+
+
+    document.getElementById(
+        "reviseResubmitDocs"
+    ).textContent =
+
+        documents.filter(
+            d =>
+                d.Status ===
+                "Revise & Resubmit"
+        ).length;
+
+
+    document.getElementById(
+        "submittedDocs"
+    ).textContent =
+
+        documents.filter(
+            d =>
+                d.Status ===
+                "Submitted"
+        ).length;
+
+
+    document.getElementById(
+        "draftDocs"
+    ).textContent =
+
+        documents.filter(
+            d =>
+                d.Status ===
+                "Draft"
+        ).length;
+
+
+    document.getElementById(
+        "cancelledDocs"
+    ).textContent =
+
+        documents.filter(
+            d =>
+                d.Status ===
+                "Cancelled"
+        ).length;
+
+
+    document.getElementById(
+        "supersededDocs"
+    ).textContent =
+
+        documents.filter(
+            d =>
+                d.Status ===
+                "Superseded"
+        ).length;
+
+
+    document.getElementById(
+        "overdueDocs"
+    ).textContent =
+
         documents.filter(
             isDocumentOverdue
         ).length;
-
-    document.getElementById("overdueDocs").textContent =
-        overdueCount;
 
 
     updateChart();
@@ -202,20 +338,43 @@ function updateDashboard() {
 
 
 // ==========================================
-// CHECK OVERDUE
+// OVERDUE
 // ==========================================
 
-function isDocumentOverdue(doc) {
+function isDocumentOverdue(
+    doc
+) {
 
-    if (doc.status !== "Submitted")
+    if (
+        doc.Status !==
+        "Submitted"
+    ) {
+
         return false;
 
-    if (!doc.dueDate)
+    }
+
+
+    if (
+        !doc.DueDate
+    ) {
+
         return false;
+
+    }
+
+
+    const due =
+        new Date(
+            doc.DueDate
+        );
+
 
     return (
-        new Date() >
-        new Date(doc.dueDate)
+        !isNaN(
+            due.getTime()
+        ) &&
+        new Date() > due
     );
 
 }
@@ -229,38 +388,59 @@ function updateChart() {
 
     const approved =
         documents.filter(
-            d => d.status === "Approved"
+            d =>
+                d.Status ===
+                "Approved"
         ).length;
+
 
     const approvedAsCorrected =
         documents.filter(
-            d => d.status === "Approved As Corrected"
+            d =>
+                d.Status ===
+                "Approved As Corrected"
         ).length;
+
 
     const reviseResubmit =
         documents.filter(
-            d => d.status === "Revise & Resubmit"
+            d =>
+                d.Status ===
+                "Revise & Resubmit"
         ).length;
+
 
     const submitted =
         documents.filter(
-            d => d.status === "Submitted"
+            d =>
+                d.Status ===
+                "Submitted"
         ).length;
+
 
     const draft =
         documents.filter(
-            d => d.status === "Draft"
+            d =>
+                d.Status ===
+                "Draft"
         ).length;
 
-    const cancelled =
-        documents.filter(
-            d => d.status === "Cancelled"
-        ).length;
 
     const superseded =
         documents.filter(
-            d => d.status === "Superseded"
+            d =>
+                d.Status ===
+                "Superseded"
         ).length;
+
+
+    const cancelled =
+        documents.filter(
+            d =>
+                d.Status ===
+                "Cancelled"
+        ).length;
+
 
     const overdue =
         documents.filter(
@@ -275,79 +455,90 @@ function updateChart() {
     }
 
 
-    const ctx =
+    const canvas =
         document.getElementById(
             "statusChart"
         );
 
 
-    if (!ctx)
+    if (!canvas) {
+
         return;
+
+    }
 
 
     statusChart =
-        new Chart(ctx, {
+        new Chart(
 
-            type: "doughnut",
+            canvas,
 
-            data: {
+            {
 
-                labels: [
+                type:
+                    "doughnut",
 
-                    "Approved",
-                    "Approved As Corrected",
-                    "Revise & Resubmit",
-                    "Submitted",
-                    "Draft",
-                    "Superseded",
-                    "Cancelled",
-                    "Overdue"
+                data: {
 
-                ],
+                    labels: [
 
-                datasets: [{
-
-                    data: [
-
-                        approved,
-                        approvedAsCorrected,
-                        reviseResubmit,
-                        submitted,
-                        draft,
-                        superseded,
-                        cancelled,
-                        overdue
+                        "Approved",
+                        "Approved As Corrected",
+                        "Revise & Resubmit",
+                        "Submitted",
+                        "Draft",
+                        "Superseded",
+                        "Cancelled",
+                        "Overdue"
 
                     ],
 
-                    backgroundColor: [
+                    datasets: [{
 
-                        "#16a34a",
-                        "#FEBE1E",
-                        "#FE0000",
-                        "#765BFF",
-                        "#D2591C",
-                        "#D8E438",
-                        "#EDADAD",
-                        "#DC2626"
+                        data: [
 
-                    ],
+                            approved,
+                            approvedAsCorrected,
+                            reviseResubmit,
+                            submitted,
+                            draft,
+                            superseded,
+                            cancelled,
+                            overdue
 
-                    borderWidth: 1
+                        ],
 
-                }]
+                        backgroundColor: [
 
-            },
+                            "#16a34a",
+                            "#FEBE1E",
+                            "#FE0000",
+                            "#765BFF",
+                            "#D2591C",
+                            "#D8E438",
+                            "#EDADAD",
+                            "#DC2626"
 
-            options: {
+                        ],
 
-                responsive: true,
+                        borderWidth: 1
 
-                plugins: {
+                    }]
 
-                    legend: {
+                },
 
-                        position: "bottom"
+                options: {
+
+                    responsive: true,
+
+                    plugins: {
+
+                        legend: {
+
+                            position:
+                                "bottom"
+
+                        }
 
                     }
 
@@ -355,7 +546,7 @@ function updateChart() {
 
             }
 
-        });
+        );
 
 }
 
@@ -364,149 +555,294 @@ function updateChart() {
 // DISPLAY DOCUMENTS
 // ==========================================
 
-function displayDocuments(list) {
+function displayDocuments(
+    list
+) {
 
-    const table =
-        document.getElementById(
-            "tableBody"
-        );
+    if (!tableBody) {
 
-    if (!table)
         return;
 
-
-    table.innerHTML = "";
-
-
-    list.forEach(doc => {
-
-        let statusClass = "";
+    }
 
 
-        const isOverdue =
-            isDocumentOverdue(doc);
+    tableBody.innerHTML = "";
 
 
-        const displayStatus =
-            isOverdue
-                ? "Overdue"
-                : doc.status;
+    // --------------------------------------
+    // EMPTY REGISTER
+    // --------------------------------------
 
+    if (
+        !list.length
+    ) {
 
-        if (doc.status === "Approved")
-            statusClass =
-                "status-approved";
-
-
-        if (
-            doc.status ===
-            "Approved As Corrected"
-        )
-            statusClass =
-                "status-approvedAsCorrected";
-
-
-        if (
-            doc.status ===
-            "Revise & Resubmit"
-        )
-            statusClass =
-                "status-reviseResubmit";
-
-
-        if (doc.status === "Submitted")
-            statusClass =
-                "status-submitted";
-
-
-        if (isOverdue)
-            statusClass =
-                "status-overdue";
-
-
-        if (doc.status === "Draft")
-            statusClass =
-                "status-draft";
-
-
-        if (doc.status === "Cancelled")
-            statusClass =
-                "status-cancelled";
-
-
-        if (doc.status === "Superseded")
-            statusClass =
-                "status-superseded";
-
-
-        // ----------------------------------
-        // File link
-        // ----------------------------------
-
-        let fileCell = "—";
-
-
-        if (doc.link) {
-
-            fileCell = `
-                <a
-                    href="${doc.link}"
-                    target="_blank"
-                    class="view-btn"
-                >
-                    View
-                </a>
-            `;
-
-        }
-
-
-        table.innerHTML += `
+        tableBody.innerHTML = `
 
             <tr>
 
-                <td>
-                    ${doc.docNo || ""}
-                </td>
+                <td
+                    colspan="10"
+                    style="
+                        text-align:center;
+                        padding:30px;
+                        color:#64748b;
+                    "
+                >
 
-                <td>
-                    ${doc.category || ""}
-                </td>
+                    No project documents
+                    have been registered yet.
 
-                <td>
-                    ${doc.trade || ""}
-                </td>
-
-                <td>
-                    ${doc.title || ""}
-                </td>
-
-                <td>
-                    ${doc.revision || ""}
-                </td>
-
-                <td class="${statusClass}">
-                    ${displayStatus || ""}
-                </td>
-
-                <td>
-                    ${doc.date || ""}
-                </td>
-
-                <td>
-                    ${fileCell}
                 </td>
 
             </tr>
 
         `;
 
-    });
+
+        document.getElementById(
+            "recordCount"
+        ).innerHTML =
+            "Total Documents : <b>0</b>";
+
+
+        return;
+
+    }
+
+
+    // --------------------------------------
+    // DISPLAY
+    // --------------------------------------
+
+    list.forEach(
+        doc => {
+
+            let statusClass =
+                "";
+
+
+            const overdue =
+                isDocumentOverdue(
+                    doc
+                );
+
+
+            const displayStatus =
+                overdue
+                    ? "Overdue"
+                    : (
+                        doc.Status ||
+                        ""
+                    );
+
+
+            // ------------------------------
+            // STATUS CLASS
+            // ------------------------------
+
+            if (
+                doc.Status ===
+                "Approved"
+            ) {
+
+                statusClass =
+                    "status-approved";
+
+            }
+
+
+            if (
+                doc.Status ===
+                "Approved As Corrected"
+            ) {
+
+                statusClass =
+                    "status-approvedAsCorrected";
+
+            }
+
+
+            if (
+                doc.Status ===
+                "Revise & Resubmit"
+            ) {
+
+                statusClass =
+                    "status-reviseResubmit";
+
+            }
+
+
+            if (
+                doc.Status ===
+                "Submitted"
+            ) {
+
+                statusClass =
+                    "status-submitted";
+
+            }
+
+
+            if (
+                doc.Status ===
+                "Draft"
+            ) {
+
+                statusClass =
+                    "status-draft";
+
+            }
+
+
+            if (
+                doc.Status ===
+                "Cancelled"
+            ) {
+
+                statusClass =
+                    "status-cancelled";
+
+            }
+
+
+            if (
+                doc.Status ===
+                "Superseded"
+            ) {
+
+                statusClass =
+                    "status-superseded";
+
+            }
+
+
+            if (overdue) {
+
+                statusClass =
+                    "status-overdue";
+
+            }
+
+
+            // ------------------------------
+            // FILE
+            // ------------------------------
+
+            let fileCell =
+                "—";
+
+
+            if (
+                doc.FileLink
+            ) {
+
+                fileCell = `
+
+                    <a
+                        href="${escapeHTML(
+                            doc.FileLink
+                        )}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="view-btn"
+                    >
+                        View
+                    </a>
+
+                `;
+
+            }
+
+
+            // ------------------------------
+            // ROW
+            // ------------------------------
+
+            const row =
+                document.createElement(
+                    "tr"
+                );
+
+
+            row.innerHTML = `
+
+                <td>
+                    ${escapeHTML(
+                        doc.DocumentNo
+                    )}
+                </td>
+
+                <td>
+                    ${escapeHTML(
+                        doc.Category
+                    )}
+                </td>
+
+                <td>
+                    ${escapeHTML(
+                        doc.Trade
+                    )}
+                </td>
+
+                <td>
+                    ${escapeHTML(
+                        doc.Title
+                    )}
+                </td>
+
+                <td>
+                    ${escapeHTML(
+                        doc.Revision
+                    )}
+                </td>
+
+                <td
+                    class="${statusClass}"
+                >
+                    ${escapeHTML(
+                        displayStatus
+                    )}
+                </td>
+
+                <td>
+                    ${formatDate(
+                        doc.Date
+                    )}
+                </td>
+
+                <td>
+                    ${formatDate(
+                        doc.DueDate
+                    )}
+                </td>
+
+                <td>
+                    ${escapeHTML(
+                        doc.BallInCourt
+                    )}
+                </td>
+
+                <td>
+                    ${fileCell}
+                </td>
+
+            `;
+
+
+            tableBody.appendChild(
+                row
+            );
+
+        }
+    );
 
 
     document.getElementById(
         "recordCount"
     ).innerHTML =
+
         "Total Documents : <b>" +
         list.length +
         "</b>";
@@ -545,128 +881,138 @@ const sort =
 
 
 // ==========================================
-// FILTER DOCUMENTS
+// FILTER
 // ==========================================
 
 function filterDocuments() {
 
     const keyword =
-        search.value.toLowerCase();
+        (
+            search.value ||
+            ""
+        ).toLowerCase();
 
 
     const selectedStatus =
         status.value;
 
+
     const selectedCategory =
         category.value;
+
 
     const selectedTrade =
         trade.value;
 
 
     const filtered =
-        documents.filter(doc => {
+        documents.filter(
+            doc => {
 
+                const matchText = [
 
-            const matchText =
+                    doc.DocumentNo,
+                    doc.Category,
+                    doc.Trade,
+                    doc.Title,
+                    doc.Revision,
+                    doc.Status,
+                    doc.BallInCourt,
+                    doc.ActivityId,
+                    doc.ActivityName
 
-                (doc.docNo || "")
-                    .toLowerCase()
-                    .includes(keyword)
+                ]
 
-                ||
-
-                (doc.title || "")
-                    .toLowerCase()
-                    .includes(keyword)
-
-                ||
-
-                (doc.category || "")
-                    .toLowerCase()
-                    .includes(keyword)
-
-                ||
-
-                (doc.trade || "")
-                    .toLowerCase()
-                    .includes(keyword)
-
-                ||
-
-                (doc.ballInCourt || "")
-                    .toLowerCase()
-                    .includes(keyword);
-
-
-            const isOverdue =
-                isDocumentOverdue(doc);
-
-
-            const matchStatus =
-
-                selectedStatus === ""
-
-                ||
-
-                (
-                    selectedStatus ===
-                    "Overdue"
-
-                    ? isOverdue
-
-                    : doc.status ===
-                      selectedStatus
+                .some(
+                    value =>
+                        String(
+                            value ||
+                            ""
+                        )
+                        .toLowerCase()
+                        .includes(
+                            keyword
+                        )
                 );
 
 
-            const matchCategory =
-
-                selectedCategory === ""
-
-                ||
-
-                doc.category ===
-                selectedCategory;
+                const overdue =
+                    isDocumentOverdue(
+                        doc
+                    );
 
 
-            const matchTrade =
+                const matchStatus =
 
-                selectedTrade === ""
+                    selectedStatus === ""
 
-                ||
+                    ||
 
-                doc.trade ===
-                selectedTrade;
+                    (
+                        selectedStatus ===
+                        "Overdue"
+
+                            ? overdue
+
+                            : doc.Status ===
+                              selectedStatus
+                    );
 
 
-            return (
+                const matchCategory =
 
-                matchText &&
+                    selectedCategory === ""
 
-                matchStatus &&
+                    ||
 
-                matchCategory &&
+                    doc.Category ===
+                    selectedCategory;
 
-                matchTrade
 
-            );
+                const matchTrade =
 
-        });
+                    selectedTrade === ""
+
+                    ||
+
+                    doc.Trade ===
+                    selectedTrade;
+
+
+                return (
+
+                    matchText &&
+
+                    matchStatus &&
+
+                    matchCategory &&
+
+                    matchTrade
+
+                );
+
+            }
+        );
 
 
     // --------------------------------------
-    // Sorting
+    // SORT
     // --------------------------------------
 
-    switch (sort.value) {
+    switch (
+        sort.value
+    ) {
 
         case "date-desc":
 
             filtered.sort(
                 (a, b) =>
-                    new Date(b.date) -
-                    new Date(a.date)
+                    new Date(
+                        b.Date
+                    ) -
+                    new Date(
+                        a.Date
+                    )
             );
 
             break;
@@ -676,8 +1022,12 @@ function filterDocuments() {
 
             filtered.sort(
                 (a, b) =>
-                    new Date(a.date) -
-                    new Date(b.date)
+                    new Date(
+                        a.Date
+                    ) -
+                    new Date(
+                        b.Date
+                    )
             );
 
             break;
@@ -687,10 +1037,16 @@ function filterDocuments() {
 
             filtered.sort(
                 (a, b) =>
-                    (a.docNo || "")
-                        .localeCompare(
-                            b.docNo || ""
+                    String(
+                        a.DocumentNo ||
+                        ""
+                    )
+                    .localeCompare(
+                        String(
+                            b.DocumentNo ||
+                            ""
                         )
+                    )
             );
 
             break;
@@ -700,10 +1056,16 @@ function filterDocuments() {
 
             filtered.sort(
                 (a, b) =>
-                    (b.docNo || "")
-                        .localeCompare(
-                            a.docNo || ""
+                    String(
+                        b.DocumentNo ||
+                        ""
+                    )
+                    .localeCompare(
+                        String(
+                            a.DocumentNo ||
+                            ""
                         )
+                    )
             );
 
             break;
@@ -713,10 +1075,16 @@ function filterDocuments() {
 
             filtered.sort(
                 (a, b) =>
-                    (a.title || "")
-                        .localeCompare(
-                            b.title || ""
+                    String(
+                        a.Title ||
+                        ""
+                    )
+                    .localeCompare(
+                        String(
+                            b.Title ||
+                            ""
                         )
+                    )
             );
 
             break;
@@ -726,10 +1094,31 @@ function filterDocuments() {
 
             filtered.sort(
                 (a, b) =>
-                    (b.title || "")
-                        .localeCompare(
-                            a.title || ""
+                    String(
+                        b.Title ||
+                        ""
+                    )
+                    .localeCompare(
+                        String(
+                            a.Title ||
+                            ""
                         )
+                    )
+            );
+
+            break;
+
+
+        case "dueDate-asc":
+
+            filtered.sort(
+                (a, b) =>
+                    new Date(
+                        a.DueDate
+                    ) -
+                    new Date(
+                        b.DueDate
+                    )
             );
 
             break;
@@ -748,35 +1137,148 @@ function filterDocuments() {
 // EVENT LISTENERS
 // ==========================================
 
-if (search)
+if (search) {
+
     search.addEventListener(
         "keyup",
         filterDocuments
     );
 
-if (status)
+}
+
+
+if (status) {
+
     status.addEventListener(
         "change",
         filterDocuments
     );
 
-if (category)
+}
+
+
+if (category) {
+
     category.addEventListener(
         "change",
         filterDocuments
     );
 
-if (trade)
+}
+
+
+if (trade) {
+
     trade.addEventListener(
         "change",
         filterDocuments
     );
 
-if (sort)
+}
+
+
+if (sort) {
+
     sort.addEventListener(
         "change",
         filterDocuments
     );
+
+}
+
+
+// ==========================================
+// DATE FORMAT
+// ==========================================
+
+function formatDate(
+    value
+) {
+
+    if (!value) {
+
+        return "—";
+
+    }
+
+
+    const date =
+        new Date(
+            value
+        );
+
+
+    if (
+        isNaN(
+            date.getTime()
+        )
+    ) {
+
+        return escapeHTML(
+            value
+        );
+
+    }
+
+
+    return date.toLocaleDateString(
+        "en-PH",
+        {
+            year: "numeric",
+            month: "short",
+            day: "2-digit"
+        }
+    );
+
+}
+
+
+// ==========================================
+// ESCAPE HTML
+// ==========================================
+
+function escapeHTML(
+    value
+) {
+
+    if (
+        value === undefined ||
+        value === null
+    ) {
+
+        return "";
+
+    }
+
+
+    return String(value)
+
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+
+        .replace(
+            /</g,
+            "&lt;"
+        )
+
+        .replace(
+            />/g,
+            "&gt;"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+}
 
 
 // ==========================================
