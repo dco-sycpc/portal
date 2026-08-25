@@ -161,17 +161,31 @@ async function loadDocuments() {
         // ----------------------------------
         // FILTER CURRENT PROJECT
         // ----------------------------------
-        documents =
-            allDocuments.filter(
-        doc =>
+documents =
+    allDocuments.filter(doc => {
+
+        const storedProject =
+            String(doc.Project || "")
+            .trim()
+            .toLowerCase();
+
+        const currentProject =
+            String(project)
+            .trim()
+            .toLowerCase();
+
+        const displayProject =
             String(
-                doc.Project || ""
-            ).trim()
-            ===
-            String(
-                project
-            ).trim()
-    );
+                projectNames[project] || ""
+            )
+            .trim()
+            .toLowerCase();
+
+        return (
+            storedProject === currentProject ||
+            storedProject === displayProject
+        );
+    });
 
         console.log(
             "Documents for project:",
