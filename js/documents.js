@@ -51,8 +51,10 @@ const tableBody =
 const projectNames = {
 
     "syc-subway-project":
-        "SYC Subway Project"
+        "SYC Subway Project",
 
+     "ortigas-project":
+        "Ortigas Project"
 };
 
 
