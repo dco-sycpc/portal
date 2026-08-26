@@ -1750,7 +1750,10 @@ if (uploadForm) {
                         ).value.trim(),
 
                     uploadedBy:
-                        "Document Controller"
+                         document.getElementById(
+                            "uploadUploadedBy"
+                        ).value.trim(),
+
 
                 };
 
