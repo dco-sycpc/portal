@@ -162,11 +162,21 @@ async function loadDocuments() {
 // TEMPORARY: SHOW ALL DOCUMENTS
 // ----------------------------------
 
-documents = allDocuments;
+documents = allDocuments.filter(doc => {
 
-console.log("All Documents:", allDocuments);
-console.log("Documents:", documents);
+    const storedProject =
+        String(doc.Project || "")
+            .trim()
+            .toLowerCase();
 
+    const currentProject =
+        String(project || "")
+            .trim()
+            .toLowerCase();
+
+    return storedProject === currentProject;
+
+});
         console.log(
             "Documents for project:",
             documents
