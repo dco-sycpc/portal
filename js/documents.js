@@ -1752,7 +1752,7 @@ if (uploadForm) {
                     uploadedBy:
                          document.getElementById(
                             "uploadUploadedBy"
-                        ).value.trim(),
+                        ).value.trim()
 
 
                 };
