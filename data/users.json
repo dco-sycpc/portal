@@ -9,6 +9,7 @@
     "role": "Document Controller",
     "projects": [
       "ortigas-project",
+      "metro-manila-subway-project-phase1",
     ],
     "active": true
   },
@@ -23,6 +24,7 @@
     "role": "Operations Manager",
     "projects": [
       "ortigas-project",
+      "Metro Manila Subway Project Phase 1",
     ],
     "active": true
   },
@@ -36,7 +38,22 @@
     "role": "Administrator",
     "projects": [
       "ortigas-project",
+       "Metro Manila Subway Project Phase 1",
     ],
     "active": true
-  }
+  },
+   {
+    "id": 4,
+    "username": "Ken",
+    "password": "123456",
+    "name": "Kenneth Navarro",
+    "position": "Operations Manager",
+    "email": "jonalex@sycpc.ph",
+    "role": "Operations Manager",
+    "projects": [
+      "ortigas-project",
+      "Metro Manila Subway Project Phase 1",
+    ],
+    "active": true
+   }  
 ]
