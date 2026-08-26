@@ -161,13 +161,10 @@ async function loadDocuments() {
         // ----------------------------------
         // FILTER CURRENT PROJECT
         // ----------------------------------
-documents =
-    allDocuments.filter(doc => {
+documents = allDocuments;
 
-        const storedProject =
-            String(doc.Project || "")
-            .trim()
-            .toLowerCase();
+console.log("All Documents:", allDocuments);
+console.log("Documents:", documents);
 
         const currentProject =
             String(project)
