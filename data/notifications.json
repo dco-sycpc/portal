@@ -1,18 +1,18 @@
 [
     {
-        "id": 1,
-        "docNo": "DVX-2026-DPWH-MAR-AR-020 R2",
-        "project": "22-storey-multipurpose-building",
-        "category": "MAR",
-        "trade": "Architectural",
-        "status": "Revise & Resubmit",
-        "assignedTo": "Engr. Jimrose Beltran",
-        "submittedBy": "John Paul Ronulo",
-        "returnedBy": "WTA",
-        "priority": "High",
-        "date": "2026-07-21",
-        "comments": "Incomplete Attachments.",
-        "read": false,
-        "link": "https://drive.google.com/file/d/1amhvTwS3NbE2iSCyc4lnU1h0oDmmrn7I/view?usp=sharing"
+        "id": "",
+        "docNo": "",
+        "project": "",
+        "category": "",
+        "trade": "",
+        "status": "",
+        "assignedTo": "",
+        "submittedBy": "",
+        "returnedBy": "",
+        "priority": "",
+        "date": "",
+        "comments": "",
+        "read": true,
+        "link": ""
     }
 ]
