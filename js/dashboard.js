@@ -1,4 +1,4 @@
-if (currentUser) {
+if (currentUser) = {
     document.getElementById("welcomeUser").textContent =
         `Welcome, ${currentUser.name}`;
 }
