@@ -1,228 +1,102 @@
-const currentUser = JSON.parse(
-    localStorage.getItem("currentUser")
-);
+"use strict";
 
-if (currentUser) {
-    document.getElementById("welcomeUser").textContent =
-        `Welcome, ${currentUser.fullname}`;
-}
+// ============================================================
+// SYC DOCUMENT PORTAL
+// DASHBOARD
+// GOOGLE APPS SCRIPT + GOOGLE SHEETS
+// ============================================================
 
-const projectFiles = [
-    "data/ortigas-project.json"
-];
 
-const projectNames = {
-    "ortigas-project": "Ortigas Project"
+// ============================================================
+// CONFIGURATION
+// ============================================================
+
+const GOOGLE_DOCUMENT_API =
+    "https://script.google.com/macros/s/AKfycbzm1xOr9HoYJOiJViLZsWAMSv1WG71be1A0itxmM1RsrT9esaD_q4ZeNx4WeEUlWZsi/exec";
+
+/*
+ * Number of recent records displayed before the user searches.
+ */
+const DASHBOARD_DOCUMENT_LIMIT = 10;
+
+/*
+ * "uploads":
+ * Counts every registered Sheet row.
+ *
+ * "unique":
+ * Counts each document number only once.
+ */
+const DOCUMENT_COUNT_MODE = "uploads";
+
+/*
+ * Project codes returned by your Apps Script are converted
+ * into readable project names here.
+ */
+const PROJECT_NAMES = {
+    "syc-subway-project":
+        "SYC Subway Project",
+
+    "ortigas-project":
+        "Ortigas Project",
+
+    "Metro Manila Subway Project Phase 1":
+        "Metro Manila Subway Project"
 };
 
-// Make documents available to the whole dashboard
-let allDocs = [];
+/*
+ * These statuses are excluded from overdue and due calculations.
+ */
+const CLOSED_STATUSES = new Set(*
+    "approved",
+    "approved as corrected",
+    "cancelled",
+    "superseded"
+]);
 
-async function loadDashboard() {
 
-    console.log("Dashboard started");
+// ===============*==================================*=========
+// GLOBAL DASHBOARD DATA*// ===============================*============================
 
-    allDocs = [];
+let *llDocs = [];
+let dashboardIsLoadin* = false;
+let dashboardLastLoadedA* = null;
 
-    for (const file of projectFiles) {
 
-        console.log("Loading:", file);
+// ====================*==================================*====
+// START DASHBOARD
+// =======*==================================*=================
 
-        try {
+document.addEve*tListener(
+    "DOMContentLoaded",*    initializeDashboard
+);
 
-            const response = await fetch(file);
-
-            console.log(response.status);
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-
-            const docs = await response.json();
-
-            console.log(file, docs.length);
-
-            docs.forEach(d => {
-
-                if (!d.project) {
-
-                    const key = file
-                        .replace("data/", "")
-                        .replace(".json", "");
-
-                    d.project = projectNames[key] || key;
-                }
-
-            });
-
-            allDocs = allDocs.concat(docs);
-
-        } catch (err) {
-
-            console.error("Error loading:", file, err);
-
-        }
-
-    }
-
-    console.log("Total Docs:", allDocs.length);
-
-    // Sort newest first
-    allDocs.sort(
-        (a, b) => new Date(b.date) - new Date(a.date)
-    );
-
-    // Display dashboard
-    displayDocuments(allDocs.slice(0, 10));
-
-    // Totals
-    document.getElementById("totalProjects").textContent =
-        projectFiles.length;
-
-    document.getElementById("totalDocuments").textContent =
-        allDocs.length;
-
-    document.getElementById("submitted").textContent =
-        allDocs.filter(d => d.status === "Submitted").length;
-
-    document.getElementById("approved").textContent =
-        allDocs.filter(d => d.status === "Approved").length;
-
-    document.getElementById("approvedAsCorrected").textContent =
-        allDocs.filter(
-            d => d.status === "Approved As Corrected"
-        ).length;
-
-    document.getElementById("reviseResubmit").textContent =
-        allDocs.filter(
-            d => d.status === "Revise & Resubmit"
-        ).length;
-
-    document.getElementById("draft").textContent =
-        allDocs.filter(d => d.status === "Draft").length;
-
-    document.getElementById("cancelled").textContent =
-        allDocs.filter(d => d.status === "Cancelled").length;
-
-    document.getElementById("superseded").textContent =
-        allDocs.filter(d => d.status === "Superseded").length;
-
-    document.getElementById("dueThisWeek").textContent = 0;
-    document.getElementById("overdue").textContent = 0;
+functi*n initializeDashboard() {
+    disp*ayCurrentUser();
+    configureSear*h();
+    configureRefreshButton();*    configureUploadRefreshListener*);
+    configureVisibilityRefresh(*;
+    loadDashboard();
 }
 
 
-// =========================
-// Display Documents
-// =========================
+// ====*==================================*====================
+// CURRENT USER
+// =============================*==============================
 
-function displayDocuments(docs) {
+fu*ction displayCurrentUser() {
+    c*nst welcomeElement =
+        docum*nt.getElementById(
+            "we*comeUser"
+        );
 
-    const tbody = document.getElementById("dashboardTable");
-
-    if (!tbody) return;
-
-    tbody.innerHTML = "";
-
-    if (docs.length === 0) {
-
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="5" style="text-align:center;">
-                    No documents found.
-                </td>
-            </tr>
-        `;
-
+    if (!wel*omeElement) {
         return;
-    }
+    *
 
-    docs.forEach(doc => {
+    try {
+        const storedUs*r =
+            localStorage.getIt*m(
+                "currentUser"
+ *          );
 
-        const formattedDate = doc.date
-            ? new Date(doc.date).toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "short",
-                day: "numeric"
-            })
-            : "";
-
-        tbody.innerHTML += `
-            <tr>
-                <td>${doc.docNo || ""}</td>
-                <td>${doc.category || ""}</td>
-                <td>${doc.project || ""}</td>
-                <td>${doc.title || ""}</td>
-                <td>${doc.status || ""}</td>
-                <td>${formattedDate}</td>
-            </tr>
-        `;
-    });
-}
-
-
-// =========================
-// Search
-// =========================
-
-const searchInput = document.getElementById("searchInput");
-
-if (searchInput) {
-
-    searchInput.addEventListener("input", function () {
-
-        const searchTerm = this.value
-            .trim()
-            .toLowerCase();
-
-        if (!searchTerm) {
-
-            displayDocuments(allDocs.slice(0, 10));
-
-            return;
-        }
-
-        const results = allDocs.filter(doc => {
-
-            return (
-                String(doc.docNo || "")
-                    .toLowerCase()
-                    .includes(searchTerm) ||
-
-                String(doc.title || "")
-                    .toLowerCase()
-                    .includes(searchTerm) ||
-
-                String(doc.project || "")
-                    .toLowerCase()
-                    .includes(searchTerm) ||
-
-                String(doc.status || "")
-                    .toLowerCase()
-                    .includes(searchTerm) ||
-
-                String(doc.trade || "")
-                    .toLowerCase()
-                    .includes(searchTerm) ||
-
-                String(doc.category || "")
-                    .toLowerCase()
-                    .includes(searchTerm)
-            );
-
-        });
-
-        console.log("Search:", searchTerm);
-        console.log("Results:", results.length);
-
-        displayDocuments(results);
-
-    });
-}
-
-
-// =========================
-// Start Dashboard
-// =========================
-
-loadDashboard();
+        const curren*
