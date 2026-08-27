@@ -262,3 +262,517 @@
                 transform 0.2s ease,
                 box-shadow 0.2s ease;
         }
+
+        .card::before {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: #2563eb;
+            content: "";
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                0 8px 20px
+                rgba(0, 0, 0, 0.1);
+        }
+
+        .card h2 {
+            margin-bottom: 10px;
+            color: #2563eb;
+            font-size: 40px;
+            line-height: 1;
+        }
+
+        .card p {
+            color: #555;
+            font-size: 15px;
+        }
+
+        .card-total::before {
+            background: #2563eb;
+        }
+
+        .card-submitted::before {
+            background: #0284c7;
+        }
+
+        .card-approved::before {
+            background: #16a34a;
+        }
+
+        .card-corrected::before {
+            background: #0891b2;
+        }
+
+        .card-revise::before {
+            background: #ea580c;
+        }
+
+        .card-draft::before {
+            background: #64748b;
+        }
+
+        .card-due::before {
+            background: #ca8a04;
+        }
+
+        .card-overdue::before {
+            background: #dc2626;
+        }
+
+        .card-projects::before {
+            background: #4f46e5;
+        }
+
+        .card-superseded::before {
+            background: #7c3aed;
+        }
+
+        .card-cancelled::before {
+            background: #475569;
+        }
+
+
+        /* ==================================================
+           SEARCH
+        ================================================== */
+
+        .search {
+            margin-top: 35px;
+            margin-bottom: 20px;
+        }
+
+        .search input {
+            width: 100%;
+            padding: 14px;
+            color: #0f172a;
+            background: white;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            outline: none;
+            font-size: 16px;
+            transition:
+                border-color 0.2s ease,
+                box-shadow 0.2s ease;
+        }
+
+        .search input:focus {
+            border-color: #2563eb;
+            box-shadow:
+                0 0 0 3px
+                rgba(37, 99, 235, 0.15);
+        }
+
+        #searchResultCount {
+            display: block;
+            margin-top: 8px;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        #searchResultCount[hidden] {
+            display: none;
+        }
+
+
+        /* ==================================================
+           TABLE
+        ================================================== */
+
+        .table-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 12px;
+        }
+
+        .table-heading h2 {
+            color: #0f172a;
+            font-size: 20px;
+        }
+
+        .table-heading p {
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow:
+                0 5px 15px
+                rgba(0, 0, 0, 0.08);
+        }
+
+        table {
+            width: 100%;
+            min-width: 900px;
+            background: white;
+            border-collapse: collapse;
+        }
+
+        th {
+            padding: 15px;
+            color: white;
+            background: #2563eb;
+            text-align: left;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 15px;
+            color: #334155;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 14px;
+            vertical-align: middle;
+        }
+
+        tbody tr {
+            transition:
+                background-color 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background: #f3f6fb;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .document-title-link {
+            color: #2563eb;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .document-title-link:hover {
+            text-decoration: underline;
+        }
+
+
+        /* ==================================================
+           STATUS BADGES
+        ================================================== */
+
+        .document-status {
+            display: inline-block;
+            padding: 5px 10px;
+            color: #334155;
+            background: #e2e8f0;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .status-submitted {
+            color: #1e40af;
+            background: #dbeafe;
+        }
+
+        .status-approved {
+            color: #166534;
+            background: #dcfce7;
+        }
+
+        .status-approved-corrected {
+            color: #155e75;
+            background: #cffafe;
+        }
+
+        .status-revise-resubmit {
+            color: #9a3412;
+            background: #ffedd5;
+        }
+
+        .status-draft {
+            color: #475569;
+            background: #e2e8f0;
+        }
+
+        .status-cancelled {
+            color: #991b1b;
+            background: #fee2e2;
+        }
+
+        .status-superseded {
+            color: #6b21a8;
+            background: #f3e8ff;
+        }
+
+
+        /* ==================================================
+           RESPONSIVE DESIGN
+        ================================================== */
+
+        @media (max-width: 900px) {
+            body {
+                display: block;
+            }
+
+            .sidebar {
+                position: static;
+                width: 100%;
+                min-width: 100%;
+                height: auto;
+                min-height: auto;
+            }
+
+            .logo {
+                width: 120px;
+                margin-bottom: 20px;
+            }
+
+            .sidebar ul {
+                display: flex;
+                gap: 8px;
+                padding-bottom: 5px;
+                overflow-x: auto;
+            }
+
+            .sidebar li {
+                flex: 0 0 auto;
+                margin-bottom: 0;
+            }
+
+            .main {
+                padding: 20px;
+            }
+
+            .header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .header-right {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .main {
+                padding: 15px;
+            }
+
+            .header h1 {
+                font-size: 23px;
+            }
+
+            .header-right {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .cards {
+                grid-template-columns:
+                    repeat(2, minmax(0, 1fr));
+                gap: 12px;
+            }
+
+            .card {
+                min-height: 115px;
+                padding: 18px;
+            }
+
+            .card h2 {
+                font-size: 32px;
+            }
+
+            .card p {
+                font-size: 13px;
+            }
+
+            .dashboard-toolbar {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .table-heading {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ==================================================
+         SIDEBAR
+    =================================================== -->
+
+    <aside class="sidebar">
+        images/sichuan.png
+
+        <nav aria-label="Main navigation">
+            <ul>
+                <li class="active">
+                    <a
+                        href="dashboard.html"
+                        aria-current="page"
+                    >
+                        🏠 Dashboard
+                    </a>
+                </li>
+
+                <li>
+                    <a href="projects.html">
+                        📁 Projects
+                    </a>
+                </li>
+
+                <li>
+                    documents.html
+                        📄 Documents
+                    </a>
+                </li>
+
+                <li>
+                    <a href="reports.html">
+                        📊 Reports
+                    </a>
+                </li>
+
+                <li>
+                    <a href="notifications.html">
+                        🔔 Notifications
+                    </a>
+                </li>
+
+                <li>
+                    settings.html
+                        ⚙ Settings
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+
+    <!-- ==================================================
+         MAIN DASHBOARD
+    =================================================== -->
+
+    <main class="main">
+
+        <!-- Header -->
+
+        <header class="header">
+            <h1>Document Control Dashboard</h1>
+
+            <div class="header-right">
+                <h3 id="welcomeUser">
+                    Welcome
+                </h3>
+
+                <button
+                    id="logoutBtn"
+                    type="button"
+                >
+                    Logout
+                </button>
+            </div>
+        </header>
+
+
+        <!-- Dashboard controls -->
+
+        <div class="dashboard-toolbar">
+            <span
+                id="dashboardLastUpdated"
+                aria-live="polite"
+            ></span>
+
+            <button
+                id="refreshDashboard"
+                type="button"
+            >
+                Refresh Dashboard
+            </button>
+        </div>
+
+
+        <!-- API and upload messages -->
+
+        <div
+            id="dashboardMessage"
+            class="dashboard-message"
+            role="status"
+            aria-live="polite"
+            hidden
+        ></div>
+
+
+        <!-- Dashboard summary cards -->
+
+        <section
+            class="cards"
+            aria-label="Document summary"
+        >
+            <article class="card card-total">
+                <h2 id="totalDocuments">0</h2>
+                <p>📁 Total Documents</p>
+            </article>
+
+            <article class="card card-submitted">
+                <h2 id="submitted">0</h2>
+                <p>Total Submitted</p>
+            </article>
+
+            <article class="card card-approved">
+                <h2 id="approved">0</h2>
+                <p>Approved</p>
+            </article>
+
+            <article class="card card-corrected">
+                <h2 id="approvedAsCorrected">0</h2>
+                <p>Approved As Corrected</p>
+            </article>
+
+            <article class="card card-revise">
+                <h2 id="reviseResubmit">0</h2>
+                <p>Revise &amp; Resubmit</p>
+            </article>
+
+            <article class="card card-draft">
+                <h2 id="draft">0</h2>
+                <p>Draft</p>
+            </article>
+
+            <article class="card card-due">
+                <h2 id="dueThisWeek">0</h2>
+                <p>Due This Week</p>
+            </article>
+
+            <article class="card card-overdue">
+                <h2 id="overdue">0</h2>
+                <p>Overdue</p>
+            </article>
+
+            <article class="card card-projects">
+                <h2 id="totalProjects">0</h2>
+                <p>Total Projects</p>
+            </article>
+
+            <article class="card card-superseded">
+                <h2 id="superseded">0</h2>
+                <p>Superseded</p>
+            </article>
+
+            <article class
