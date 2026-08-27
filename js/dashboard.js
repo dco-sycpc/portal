@@ -8,22 +8,10 @@ if (currentUser) {
 }
 
 const projectFiles = [
-    "data/22-storey-multipurpose-building.json",
-    "data/government-center.json",
-    "data/school-cluster3.json",
-    "data/medical-center.json",
-    "data/evacuation-center.json",
-    "data/crematorium.json",
     "data/ortigas-project.json"
 ];
 
 const projectNames = {
-    "22-storey-multipurpose-building": "22-Storey Multipurpose Building",
-    "government-center": "Government Center",
-    "school-cluster3": "School Cluster 3",
-    "medical-center": "Medical Center",
-    "evacuation-center": "Evacuation Center",
-    "crematorium": "Crematorium",
     "ortigas-project": "Ortigas Project"
 };
 
