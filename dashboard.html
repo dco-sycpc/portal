@@ -234,108 +234,80 @@
         }
 
 
-        /* ==================================================
-           SUMMARY CARDS
-        ================================================== */
+        <!-- ==================================================
+          DASHBOARD SUMMARY CARDS
+         =================================================== -->
 
-        .cards {
-            di*play: grid;
-            grid-templ*te-columns:
-                repeat*
-                    auto-fit,
-   *                minmax(200px, 1fr)*                );
-            gap* 20px;
-        }
+<section
+    class="cards"
+    aria-label="Document summary"
+>
+    <!-- Total Documents -->
+    <article class="card card-total">
+        <h2 id="totalDocuments">0</h2>
+        <p>📁 Total Documents</p>
+    </article>
 
-        .card {
-*           position: relative;
-   *        min-height: 135px;
-       *    padding: 25px;
-            ove*flow: hidden;
-            backgrou*d: white;
-            border: 1px *olid #e2e8f0;
-            border-r*dius: 12px;
-            box-shadow:
-                0 5px 15px
-                rgba(0, 0, 0, 0.08);
-            transition:
-                transform 0.2s ease,
-                box-shadow 0.2s ease;
-        }
+    <!-- Submitted -->
+    <article class="card card-submitted">
+        <h2 id="submitted">0</h2>
+        <p>📤 Total Submitted</p>
+    </article>
 
-        .card::before {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 5px;
-            height: 100%;
-            background: #2563eb;
-            content: "";
-        }
+    <!-- Approved -->
+    <article class="card card-approved">
+        <h2 id="approved">0</h2>
+        <p>✅ Approved</p>
+    </article>
 
-        .card:hover {
-            transform: translateY(-2px);
-            box-shadow:
-                0 8px 20px
-                rgba(0, 0, 0, 0.1);
-        }
+    <!-- Approved As Corrected -->
+    <article class="card card-corrected">
+        <h2 id="approvedAsCorrected">0</h2>
+        <p>☑️ Approved As Corrected</p>
+    </article>
 
-        .card h2 {
-            margin-bottom: 10px;
-            color: #2563eb;
-            font-size: 40px;
-            line-height: 1;
-        }
+    <!-- Revise and Resubmit -->
+    <article class="card card-revise">
+        <h2 id="reviseResubmit">0</h2>
+        <p>🔄 Revise &amp; Resubmit</p>
+    </article>
 
-        .card p {
-            color: #555;
-            font-size: 15px;
-        }
+    <!-- Draft -->
+    <article class="card card-draft">
+        <h2 id="draft">0</h2>
+        <p>📝 Draft</p>
+    </article>
 
-        .card-total::before {
-            background: #2563eb;
-        }
+    <!-- Due This Week -->
+    <article class="card card-due">
+        <h2 id="dueThisWeek">0</h2>
+        <p>📅 Due This Week</p>
+    </article>
 
-        .card-submitted::before {
-            background: #0284c7;
-        }
+    <!-- Overdue -->
+    <article class="card card-overdue">
+        <h2 id="overdue">0</h2>
+        <p>⚠️ Overdue</p>
+    </article>
 
-        .card-approved::before {
-            background: #16a34a;
-        }
+    <!-- Total Projects -->
+    <article class="card card-projects">
+        <h2 id="totalProjects">0</h2>
+        <p>🏗️ Total Projects</p>
+    </article>
 
-        .card-corrected::before {
-            background: #0891b2;
-        }
+    <!-- Superseded -->
+    <article class="card card-superseded">
+        <h2 id="superseded">0</h2>
+        <p>♻️ Superseded</p>
+    </article>
 
-        .card-revise::before {
-            background: #ea580c;
-        }
-
-        .card-draft::before {
-            background: #64748b;
-        }
-
-        .card-due::before {
-            background: #ca8a04;
-        }
-
-        .card-overdue::before {
-            background: #dc2626;
-        }
-
-        .card-projects::before {
-            background: #4f46e5;
-        }
-
-        .card-superseded::before {
-            background: #7c3aed;
-        }
-
-        .card-cancelled::before {
-            background: #475569;
-        }
-
+    <!-- Cancelled -->
+    <article class="card card-cancelled">
+        <h2 id="cancelled">0</h2>
+        <p>❌ Cancelled</p>
+      </article>
+  </section>
 
         /* ==================================================
            SEARCH
