@@ -1,11 +1,5 @@
 [
      {
-        "id": "ortigas-project",
-        "name": "Ortigas Project",
-        "description": "Subway Project",
-        "icon": "🚅"
-     },
-     {
         "id": "Metro Manila Subway Project Phase 1",
         "name": "Metro Manila Subway Project",
         "description": "CP104",
