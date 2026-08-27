@@ -1759,10 +1759,9 @@ if (uploadForm) {
                             "uploadRemarks"
                         ).value.trim(),
 
-                    uploadedBy:
-                         document.getElementById(
-                            "uploadUploadedBy"
-                        ).value.trim()
+                   uploadedBy:
+                        localStorage.getItem("username") ||
+                            "Document Controller"
 
 
                 };
