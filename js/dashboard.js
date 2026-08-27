@@ -1,14 +1,24 @@
-if (currentUser) = {
+if (currentUser) {
     document.getElementById("welcomeUser").textContent =
         `Welcome, ${currentUser.name}`;
 }
 
 const projectFiles = [
-    "data/ortigas-project.json"
+    "data/22-storey-multipurpose-building.json",
+    "data/government-center.json",
+    "data/school-cluster3.json",
+    "data/medical-center.json",
+    "data/evacuation-center.json",
+    "data/crematorium.json"
 ];
 
 const projectNames = {
-    "ortigas-project": "Ortigas Project"
+    "22-storey-multipurpose-building": "22-Storey Multipurpose Building",
+    "government-center": "Government Center",
+    "school-cluster3": "School Cluster 3",
+    "medical-center": "Medical Center",
+    "evacuation-center": "Evacuation Center",
+    "crematorium": "Crematorium"
 };
 
 async function loadDashboard() {
