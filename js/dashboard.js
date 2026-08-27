@@ -1,102 +1,101 @@
-"use strict";
-
-// ============================================================
-// SYC DOCUMENT PORTAL
-// DASHBOARD
-// GOOGLE APPS SCRIPT + GOOGLE SHEETS
-// ============================================================
-
-
-// ============================================================
-// CONFIGURATION
-// ============================================================
-
-const GOOGLE_DOCUMENT_API =
-    "https://script.google.com/macros/s/AKfycbzm1xOr9HoYJOiJViLZsWAMSv1WG71be1A0itxmM1RsrT9esaD_q4ZeNx4WeEUlWZsi/exec";
-
-/*
- * Number of recent records displayed before the user searches.
- */
-const DASHBOARD_DOCUMENT_LIMIT = 10;
-
-/*
- * "uploads":
- * Counts every registered Sheet row.
- *
- * "unique":
- * Counts each document number only once.
- */
-const DOCUMENT_COUNT_MODE = "uploads";
-
-/*
- * Project codes returned by your Apps Script are converted
- * into readable project names here.
- */
-const PROJECT_NAMES = {
-    "syc-subway-project":
-        "SYC Subway Project",
-
-    "ortigas-project":
-        "Ortigas Project",
-
-    "Metro Manila Subway Project Phase 1":
-        "Metro Manila Subway Project"
-};
-
-/*
- * These statuses are excluded from overdue and due calculations.
- */
-const CLOSED_STATUSES = new Set(*
-    "approved",
-    "approved as corrected",
-    "cancelled",
-    "superseded"
-]);
-
-
-// ===============*==================================*=========
-// GLOBAL DASHBOARD DATA*// ===============================*============================
-
-let *llDocs = [];
-let dashboardIsLoadin* = false;
-let dashboardLastLoadedA* = null;
-
-
-// ====================*==================================*====
-// START DASHBOARD
-// =======*==================================*=================
-
-document.addEve*tListener(
-    "DOMContentLoaded",*    initializeDashboard
-);
-
-functi*n initializeDashboard() {
-    disp*ayCurrentUser();
-    configureSear*h();
-    configureRefreshButton();*    configureUploadRefreshListener*);
-    configureVisibilityRefresh(*;
-    loadDashboard();
+if (currentUser) {
+    document.getElementById("welcomeUser").textContent =
+        `Welcome, ${currentUser.name}`;
 }
 
+const projectFiles = [
+    "data/ortigas-project.json"
+];
 
-// ====*==================================*====================
-// CURRENT USER
-// =============================*==============================
+const projectNames = {
+    "ortigas-project": "Ortigas Project"
+};
 
-fu*ction displayCurrentUser() {
-    c*nst welcomeElement =
-        docum*nt.getElementById(
-            "we*comeUser"
-        );
+async function loadDashboard() {
+    console.log("Dashboard started");
 
-    if (!wel*omeElement) {
-        return;
-    *
+    let allDocs = [];
 
-    try {
-        const storedUs*r =
-            localStorage.getIt*m(
-                "currentUser"
- *          );
+    for (const file of projectFiles) {
+        console.log("Loading:", file);
+        try {
+            const response = await fetch(file);
+            console.log(response.status);
 
-        const curren*
+            const docs = await response.json();
+            console.log(file, docs.length);
+
+            // Attach project name if missing
+            docs.forEach(d => {
+                if (!d.project) {
+                    const key = file.replace("data/", "").replace(".json", "");
+                    d.project = projectNames[key] || key;
+                }
+            });
+
+            allDocs = allDocs.concat(docs);
+
+        } catch (err) {
+            console.error(file, err);
+        }
+    }
+
+    console.log("Total Docs:", allDocs.length);
+
+    // ✅ Sort after all files are loaded
+    allDocs.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    // ✅ Build dashboard table
+    const tbody = document.getElementById("dashboardTable");
+    tbody.innerHTML = "";
+
+    allDocs.slice(0, 10).forEach(doc => {
+        const formattedDate = new Date(doc.date).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric"
+        });
+
+        tbody.innerHTML += `
+        <tr>
+            <td>${doc.docNo}</td>
+            <td>${doc.project}</td>
+            <td>${doc.title}</td>
+            <td>${doc.status}</td>
+            <td>${formattedDate}</td>
+        </tr>
+        `;
+    });
+
+    // ✅ Totals
+    document.getElementById("totalProjects").textContent = projectFiles.length;
+    document.getElementById("totalDocuments").textContent = allDocs.length;
+
+    document.getElementById("submitted").textContent =
+        allDocs.filter(d => d.status === "Submitted").length;
+
+    document.getElementById("approved").textContent =
+        allDocs.filter(d => d.status === "Approved").length;
+
+    document.getElementById("approvedAsCorrected").textContent =
+        allDocs.filter(d => d.status === "Approved As Corrected").length;
+
+    document.getElementById("reviseResubmit").textContent =
+        allDocs.filter(d => d.status === "Revise & Resubmit").length;
+
+    document.getElementById("draft").textContent =
+        allDocs.filter(d => d.status === "Draft").length;
+
+    document.getElementById("cancelled").textContent =
+        allDocs.filter(d => d.status === "Cancelled").length;
+
+    document.getElementById("superseded").textContent =
+        allDocs.filter(d => d.status === "Superseded").length;
+
+    // Placeholder for due dates
+    document.getElementById("dueThisWeek").textContent = 0;
+    document.getElementById("overdue").textContent = 0;
+}
+
+// ✅ Call the function
+loadDashboard();
