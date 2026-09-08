@@ -44,9 +44,6 @@ if (currentUser) {
 const DOCUMENTS_API_URL =
     "https://script.google.com/macros/s/AKfycbzm1xOr9HoYJOiJViLZsWAMSv1WG71be1A0itxmM1RsrT9esaD_q4ZeNx4WeEUlWZsi/exec";
 
-const REPORTS_API_URL =
-    "https://script.google.com/macros/s/AKfycbxRqNkwT5SkrW-dy8yu4XTpt-JeS8Jx28a_GdGq5lFhGdobot0kAlgH1LnadAS4vBYq/exec";
-
 
 // ============================================================
 // GLOBAL DOCUMENT ARRAY
