@@ -43,6 +43,8 @@ if (currentUser) {
 
 const DOCUMENTS_API_URL =
     "https://script.google.com/macros/s/AKfycbzm1xOr9HoYJOiJViLZsWAMSv1WG71be1A0itxmM1RsrT9esaD_q4ZeNx4WeEUlWZsi/exec";
+
+const REPORTS_API_URL =
     "https://script.google.com/macros/s/AKfycbxRqNkwT5SkrW-dy8yu4XTpt-JeS8Jx28a_GdGq5lFhGdobot0kAlgH1LnadAS4vBYq/exec";
 
 
@@ -259,8 +261,13 @@ async function loadDashboard() {
     );
 
     console.log(
-        "API:",
-        API_URL
+        "Documents API:",
+        DOCUMENTS_API_URL
+    );
+
+     console.log(
+        "Reports API:",
+        REPORTS_API_URL
     );
 
     console.log(
@@ -276,8 +283,8 @@ async function loadDashboard() {
     // --------------------------------------------------------
 
     if (
-        !API_URL ||
-        API_URL ===
+        !DOCUMENTS_API_URL ||
+        REPORTS_API_URL ===
         "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL"
     ) {
 
