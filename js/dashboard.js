@@ -74,14 +74,14 @@ let allDocs = [];
 
 const projectNames = {
 
-    "22-storey-multipurpose-building":
-        "Multipurpose Building",
+    "metro-manila-project-phase1":
+        "Metro Manila Subway Project",
 
-    "government-center":
-        "Government Center",
+    "ortigas-project":
+        "Ortigas Project",
 
-    "school-cluster3":
-        "School Cluster 3"
+    "syc-subway-project":
+        "SYC Subway Project"
 
 };
 
