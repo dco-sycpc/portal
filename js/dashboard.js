@@ -1,301 +1,1313 @@
+// ============================================================
+// SYC DOCUMENT PORTAL
+// DASHBOARD.JS
+// Google Spreadsheet / Apps Script API Version
+// ============================================================
+
+
+// ============================================================
+// CURRENT USER
+// ============================================================
+
 const currentUser = JSON.parse(
     localStorage.getItem("currentUser")
 );
 
 
 if (currentUser) {
-    document.getElementById("welcomeUser").textContent =
-        `Welcome, ${currentUser.fullname}`;
+
+    const welcomeUser =
+        document.getElementById("welcomeUser");
+
+    if (welcomeUser) {
+
+        welcomeUser.textContent =
+            `Welcome, ${currentUser.fullname}`;
+
+    }
+
 }
 
 
-const projectFiles = [
-    "data/ortigas-project.json"
-];
+// ============================================================
+// GOOGLE APPS SCRIPT API
+// ============================================================
+//
+// Replace this URL with your deployed Google Apps Script
+// Web App URL.
+//
+// Example:
+// https://script.google.com/macros/s/XXXXXXXXXXXX/exec
+//
+// ============================================================
+
+const DOCUMENTS_API_URL =
+    "https://script.google.com/macros/s/AKfycbzm1xOr9HoYJOiJViLZsWAMSv1WG71be1A0itxmM1RsrT9esaD_q4ZeNx4WeEUlWZsi/exec";
+
+const REPORTS_API_URL =
+    "https://script.google.com/macros/s/AKfycbxRqNkwT5SkrW-dy8yu4XTpt-JeS8Jx28a_GdGq5lFhGdobot0kAlgH1LnadAS4vBYq/exec";
 
 
-const projectNames = {
-    "ortigas-project": "Ortigas Project"
-};
+// ============================================================
+// GLOBAL DOCUMENT ARRAY
+// ============================================================
+//
+// All documents retrieved from Google Spreadsheet
+// will be stored here.
+//
+// ============================================================
 
-
-// Make documents available to the whole dashboard
 let allDocs = [];
 
 
+// ============================================================
+// PROJECT NAME MAP
+// ============================================================
+//
+// This converts project IDs stored in the spreadsheet
+// into friendly project names.
+//
+// If your spreadsheet already contains the friendly
+// project name, the value will simply be used as-is.
+//
+// ============================================================
+
+const projectNames = {
+
+    "22-storey-multipurpose-building":
+        "Multipurpose Building",
+
+    "government-center":
+        "Government Center",
+
+    "school-cluster3":
+        "School Cluster 3"
+
+};
+
+
+// ============================================================
+// NORMALIZE PROJECT NAME
+// ============================================================
+
+function normalizeProjectName(project) {
+
+    if (!project) {
+        return "";
+    }
+
+    const projectKey =
+        String(project).trim();
+
+    return (
+        projectNames[projectKey] ||
+        projectKey
+    );
+
+}
+
+
+// ============================================================
+// NORMALIZE STATUS
+// ============================================================
+//
+// This makes status comparison more reliable.
+//
+// Example:
+//
+// "Approved"
+// "approved"
+// " APPROVED "
+//
+// will all be treated as "approved".
+//
+// ============================================================
+
+function normalizeStatus(status) {
+
+    return String(status || "")
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, " ");
+
+}
+
+
+// ============================================================
+// NORMALIZE DOCUMENT DATA
+// ============================================================
+//
+// Google Apps Script returns the column headers from
+// Google Spreadsheet exactly as they appear:
+//
+// DocNo
+// Category
+// Trade
+// Title
+// Revision
+// Status
+// Date
+// DueDate
+// etc.
+//
+// Your existing dashboard uses:
+//
+// doc.docNo
+// doc.category
+// doc.trade
+// doc.title
+// doc.status
+// etc.
+//
+// This function converts the Google Sheet structure
+// into the structure already used by your dashboard.
+//
+// ============================================================
+
+function normalizeDocument(d) {
+
+    return {
+
+        docNo:
+            d.DocNo || "",
+
+        category:
+            d.Category || "",
+
+        trade:
+            d.Trade || "",
+
+        title:
+            d.Title || "",
+
+        revision:
+            d.Revision || "",
+
+        status:
+            d.Status || "",
+
+        date:
+            d.Date || "",
+
+        dueDate:
+            d.DueDate || "",
+
+        ballInCourt:
+            d.BallInCourt || "",
+
+        activityId:
+            d.ActivityID || "",
+
+        activityName:
+            d.ActivityName || "",
+
+        project:
+            normalizeProjectName(d.Project),
+
+        preparedBy:
+            d.PreparedBy || "",
+
+        submittedBy:
+            d.SubmittedBy || "",
+
+        remarks:
+            d.Remarks || "",
+
+        fileName:
+            d.FileName || "",
+
+        fileId:
+            d.FileID || "",
+
+        fileLink:
+            d.FileLink || "",
+
+        fileSize:
+            d.FileSize || "",
+
+        fileType:
+            d.FileType || "",
+
+        uploadedBy:
+            d.UploadedBy || "",
+
+        uploadedDate:
+            d.UploadedDate || "",
+
+        folder:
+            d.Folder || ""
+
+    };
+
+}
+
+
+// ============================================================
+// LOAD DASHBOARD
+// ============================================================
+
 async function loadDashboard() {
 
+    console.log(
+        "===================================="
+    );
 
-    console.log("Dashboard started");
+    console.log(
+        "SYC Dashboard started"
+    );
+
+    console.log(
+        "Loading documents from Google Spreadsheet..."
+    );
+
+    console.log(
+        "API:",
+        API_URL
+    );
+
+    console.log(
+        "===================================="
+    );
 
 
     allDocs = [];
 
 
-    for (const file of projectFiles) {
+    // --------------------------------------------------------
+    // Validate API URL
+    // --------------------------------------------------------
 
+    if (
+        !API_URL ||
+        API_URL ===
+        "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL"
+    ) {
 
-        console.log("Loading:", file);
+        console.error(
+            "Google Apps Script API URL has not been configured."
+        );
 
+        showDashboardError(
+            "Google Apps Script API URL has not been configured."
+        );
 
-        try {
-
-
-            const response = await fetch(file);
-
-
-            console.log(response.status);
-
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-
-
-            const docs = await response.json();
-
-
-            console.log(file, docs.length);
-
-
-            docs.forEach(d => {
-
-
-                if (!d.project) {
-
-
-                    const key = file
-                        .replace("data/", "")
-                        .replace(".json", "");
-
-
-                    d.project = projectNames[key] || key;
-                }
-
-
-            });
-
-
-            allDocs = allDocs.concat(docs);
-
-
-        } catch (err) {
-
-
-            console.error("Error loading:", file, err);
-
-
-        }
-
+        return;
 
     }
 
 
-    console.log("Total Docs:", allDocs.length);
+    // --------------------------------------------------------
+    // Fetch Google Apps Script API
+    // --------------------------------------------------------
+
+    try {
+
+        const response =
+            await fetch(API_URL, {
+
+                method: "GET",
+
+                cache: "no-store"
+
+            });
 
 
-    // Sort newest first
+        console.log(
+            "API Response Status:",
+            response.status
+        );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                `HTTP ${response.status}`
+            );
+
+        }
+
+
+        const result =
+            await response.json();
+
+
+        console.log(
+            "API Response:",
+            result
+        );
+
+
+        // ----------------------------------------------------
+        // Check API result
+        // ----------------------------------------------------
+
+        if (!result.success) {
+
+            throw new Error(
+                result.message ||
+                "Google Apps Script returned an error."
+            );
+
+        }
+
+
+        // ----------------------------------------------------
+        // Normalize documents
+        // ----------------------------------------------------
+
+        allDocs =
+            (result.documents || [])
+                .map(normalizeDocument);
+
+
+        console.log(
+            "Total Documents:",
+            allDocs.length
+        );
+
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Unable to load documents:",
+            error
+        );
+
+
+        showDashboardError(
+            "Unable to load documents from Google Spreadsheet."
+        );
+
+
+        return;
+
+    }
+
+
+    // ========================================================
+    // SORT DOCUMENTS
+    // ========================================================
+    //
+    // Newest documents first.
+    //
+    // ========================================================
+
     allDocs.sort(
-        (a, b) => new Date(b.date) - new Date(a.date)
+        (a, b) => {
+
+            const dateA =
+                new Date(a.date);
+
+            const dateB =
+                new Date(b.date);
+
+
+            return (
+                dateB - dateA
+            );
+
+        }
     );
 
 
-    // Display dashboard
-    displayDocuments(allDocs.slice(0, 10));
+    // ========================================================
+    // DISPLAY RECENT DOCUMENTS
+    // ========================================================
+
+    displayDocuments(
+        allDocs.slice(0, 10)
+    );
 
 
-    // Totals
-    document.getElementById("totalProjects").textContent =
-        projectFiles.length;
+    // ========================================================
+    // TOTAL PROJECTS
+    // ========================================================
+
+    const uniqueProjects =
+        [
+            ...new Set(
+
+                allDocs
+
+                    .map(
+                        d => d.project
+                    )
+
+                    .filter(
+                        Boolean
+                    )
+
+            )
+        ];
 
 
-    document.getElementById("totalDocuments").textContent =
-        allDocs.length;
+    setElementText(
+        "totalProjects",
+        uniqueProjects.length
+    );
 
 
-    document.getElementById("submitted").textContent =
-        allDocs.filter(d => d.status === "Submitted").length;
+    // ========================================================
+    // TOTAL DOCUMENTS
+    // ========================================================
+
+    setElementText(
+        "totalDocuments",
+        allDocs.length
+    );
 
 
-    document.getElementById("approved").textContent =
-        allDocs.filter(d => d.status === "Approved").length;
+    // ========================================================
+    // STATUS COUNTS
+    // ========================================================
+
+    setElementText(
+        "submitted",
+        countStatus("Submitted")
+    );
 
 
-    document.getElementById("approvedAsCorrected").textContent =
-        allDocs.filter(
-            d => d.status === "Approved As Corrected"
-        ).length;
+    setElementText(
+        "approved",
+        countStatus("Approved")
+    );
 
 
-    document.getElementById("reviseResubmit").textContent =
-        allDocs.filter(
-            d => d.status === "Revise & Resubmit"
-        ).length;
+    setElementText(
+        "approvedAsCorrected",
+        countStatus("Approved As Corrected")
+    );
 
 
-    document.getElementById("draft").textContent =
-        allDocs.filter(d => d.status === "Draft").length;
+    setElementText(
+        "reviseResubmit",
+        countStatus("Revise & Resubmit")
+    );
 
 
-    document.getElementById("cancelled").textContent =
-        allDocs.filter(d => d.status === "Cancelled").length;
+    setElementText(
+        "draft",
+        countStatus("Draft")
+    );
 
 
-    document.getElementById("superseded").textContent =
-        allDocs.filter(d => d.status === "Superseded").length;
+    setElementText(
+        "cancelled",
+        countStatus("Cancelled")
+    );
 
 
-    document.getElementById("dueThisWeek").textContent = 0;
-    document.getElementById("overdue").textContent = 0;
+    setElementText(
+        "superseded",
+        countStatus("Superseded")
+    );
+
+
+    // ========================================================
+    // DUE / OVERDUE
+    // ========================================================
+    //
+    // These are calculated automatically from DueDate.
+    //
+    // ========================================================
+
+    const dueThisWeek =
+        countDueThisWeek();
+
+
+    const overdue =
+        countOverdue();
+
+
+    setElementText(
+        "dueThisWeek",
+        dueThisWeek
+    );
+
+
+    setElementText(
+        "overdue",
+        overdue
+    );
+
+
+    console.log(
+        "Dashboard successfully loaded."
+    );
+
 }
 
 
+// ============================================================
+// SET ELEMENT TEXT
+// ============================================================
+
+function setElementText(
+    elementId,
+    value
+) {
+
+    const element =
+        document.getElementById(
+            elementId
+        );
 
 
-// =========================
-// Display Documents
-// =========================
+    if (element) {
+
+        element.textContent =
+            value;
+
+    }
+
+}
 
 
-function displayDocuments(docs) {
+// ============================================================
+// COUNT STATUS
+// ============================================================
+
+function countStatus(
+    status
+) {
+
+    const target =
+        normalizeStatus(status);
 
 
-    const tbody = document.getElementById("dashboardTable");
+    return allDocs.filter(
+        doc =>
+            normalizeStatus(
+                doc.status
+            ) === target
+    ).length;
+
+}
 
 
-    if (!tbody) return;
+// ============================================================
+// GET VALID DATE
+// ============================================================
+
+function getValidDate(
+    value
+) {
+
+    if (!value) {
+        return null;
+    }
+
+
+    const date =
+        new Date(value);
+
+
+    if (
+        Number.isNaN(
+            date.getTime()
+        )
+    ) {
+
+        return null;
+
+    }
+
+
+    return date;
+
+}
+
+
+// ============================================================
+// COUNT DUE THIS WEEK
+// ============================================================
+
+function countDueThisWeek() {
+
+    const today =
+        new Date();
+
+
+    today.setHours(
+        0,
+        0,
+        0,
+        0
+    );
+
+
+    const endOfWeek =
+        new Date(today);
+
+
+    endOfWeek.setDate(
+        today.getDate() +
+        7
+    );
+
+
+    endOfWeek.setHours(
+        23,
+        59,
+        59,
+        999
+    );
+
+
+    return allDocs.filter(
+        doc => {
+
+            const dueDate =
+                getValidDate(
+                    doc.dueDate
+                );
+
+
+            if (!dueDate) {
+                return false;
+            }
+
+
+            return (
+                dueDate >= today &&
+                dueDate <= endOfWeek
+            );
+
+        }
+    ).length;
+
+}
+
+
+// ============================================================
+// COUNT OVERDUE
+// ============================================================
+
+function countOverdue() {
+
+    const today =
+        new Date();
+
+
+    today.setHours(
+        0,
+        0,
+        0,
+        0
+    );
+
+
+    return allDocs.filter(
+        doc => {
+
+            const dueDate =
+                getValidDate(
+                    doc.dueDate
+                );
+
+
+            if (!dueDate) {
+                return false;
+            }
+
+
+            if (
+                dueDate >= today
+            ) {
+
+                return false;
+
+            }
+
+
+            const status =
+                normalizeStatus(
+                    doc.status
+                );
+
+
+            // Do not consider completed-type
+            // documents as overdue.
+
+            const completedStatuses = [
+
+                "approved",
+                "approved as corrected",
+                "cancelled",
+                "superseded",
+                "closed"
+
+            ];
+
+
+            if (
+                completedStatuses.includes(
+                    status
+                )
+            ) {
+
+                return false;
+
+            }
+
+
+            return true;
+
+        }
+    ).length;
+
+}
+
+
+// ============================================================
+// DISPLAY DOCUMENTS
+// ============================================================
+
+function displayDocuments(
+    docs
+) {
+
+    const tbody =
+        document.getElementById(
+            "dashboardTable"
+        );
+
+
+    if (!tbody) {
+
+        console.warn(
+            "dashboardTable element not found."
+        );
+
+        return;
+
+    }
 
 
     tbody.innerHTML = "";
 
 
-    if (docs.length === 0) {
+    // --------------------------------------------------------
+    // No documents
+    // --------------------------------------------------------
 
+    if (
+        !docs ||
+        docs.length === 0
+    ) {
 
         tbody.innerHTML = `
+
             <tr>
-                <td colspan="5" style="text-align:center;">
+
+                <td
+                    colspan="6"
+                    style="text-align:center;"
+                >
+
                     No documents found.
+
                 </td>
+
             </tr>
+
         `;
 
+        return;
 
+    }
+
+
+    // --------------------------------------------------------
+    // Display documents
+    // --------------------------------------------------------
+
+    docs.forEach(
+        doc => {
+
+            const formattedDate =
+                formatDate(
+                    doc.date
+                );
+
+
+            const row =
+                document.createElement(
+                    "tr"
+                );
+
+
+            row.innerHTML = `
+
+                <td>
+                    ${escapeHTML(
+                        doc.docNo
+                    )}
+                </td>
+
+                <td>
+                    ${escapeHTML(
+                        doc.category
+                    )}
+                </td>
+
+                <td>
+                    ${escapeHTML(
+                        doc.project
+                    )}
+                </td>
+
+                <td>
+                    ${escapeHTML(
+                        doc.title
+                    )}
+                </td>
+
+                <td>
+                    ${escapeHTML(
+                        doc.status
+                    )}
+                </td>
+
+                <td>
+                    ${formattedDate}
+                </td>
+
+            `;
+
+
+            tbody.appendChild(
+                row
+            );
+
+        }
+    );
+
+}
+
+
+// ============================================================
+// FORMAT DATE
+// ============================================================
+
+function formatDate(
+    value
+) {
+
+    if (!value) {
+        return "";
+    }
+
+
+    const date =
+        getValidDate(
+            value
+        );
+
+
+    if (!date) {
+        return "";
+    }
+
+
+    return date.toLocaleDateString(
+        "en-US",
+        {
+
+            year: "numeric",
+
+            month: "short",
+
+            day: "numeric"
+
+        }
+    );
+
+}
+
+
+// ============================================================
+// ESCAPE HTML
+// ============================================================
+//
+// Prevents document information containing characters such
+// as < > & from being interpreted as HTML.
+//
+// ============================================================
+
+function escapeHTML(
+    value
+) {
+
+    if (
+        value === null ||
+        value === undefined
+    ) {
+
+        return "";
+
+    }
+
+
+    return String(value)
+
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+
+        .replace(
+            /</g,
+            "&lt;"
+        )
+
+        .replace(
+            />/g,
+            "&gt;"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+}
+
+
+// ============================================================
+// SHOW DASHBOARD ERROR
+// ============================================================
+
+function showDashboardError(
+    message
+) {
+
+    const tbody =
+        document.getElementById(
+            "dashboardTable"
+        );
+
+
+    if (!tbody) {
         return;
     }
 
 
-    docs.forEach(doc => {
+    tbody.innerHTML = `
+
+        <tr>
+
+            <td
+                colspan="6"
+                style="
+                    text-align:center;
+                    padding:20px;
+                "
+            >
+
+                ${escapeHTML(
+                    message
+                )}
+
+            </td>
+
+        </tr>
+
+    `;
 
 
-        const formattedDate = doc.date
-            ? new Date(doc.date).toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "short",
-                day: "numeric"
-            })
-            : "";
+    // Reset dashboard counters
+
+    setElementText(
+        "totalProjects",
+        0
+    );
 
 
-        tbody.innerHTML += `
-            <tr>
-                <td>${doc.docNo || ""}</td>
-                <td>${doc.category || ""}</td>
-                <td>${doc.project || ""}</td>
-                <td>${doc.title || ""}</td>
-                <td>${doc.status || ""}</td>
-                <td>${formattedDate}</td>
-            </tr>
-        `;
-    });
+    setElementText(
+        "totalDocuments",
+        0
+    );
+
+
+    setElementText(
+        "submitted",
+        0
+    );
+
+
+    setElementText(
+        "approved",
+        0
+    );
+
+
+    setElementText(
+        "approvedAsCorrected",
+        0
+    );
+
+
+    setElementText(
+        "reviseResubmit",
+        0
+    );
+
+
+    setElementText(
+        "draft",
+        0
+    );
+
+
+    setElementText(
+        "cancelled",
+        0
+    );
+
+
+    setElementText(
+        "superseded",
+        0
+    );
+
+
+    setElementText(
+        "dueThisWeek",
+        0
+    );
+
+
+    setElementText(
+        "overdue",
+        0
+    );
+
 }
 
 
+// ============================================================
+// SEARCH
+// ============================================================
 
-
-// =========================
-// Search
-// =========================
-
-
-const searchInput = document.getElementById("searchInput");
+const searchInput =
+    document.getElementById(
+        "searchInput"
+    );
 
 
 if (searchInput) {
 
+    searchInput.addEventListener(
+        "input",
+        function () {
 
-    searchInput.addEventListener("input", function () {
-
-
-        const searchTerm = this.value
-            .trim()
-            .toLowerCase();
-
-
-        if (!searchTerm) {
+            const searchTerm =
+                this.value
+                    .trim()
+                    .toLowerCase();
 
 
-            displayDocuments(allDocs.slice(0, 10));
+            // ------------------------------------------------
+            // Empty search
+            // ------------------------------------------------
+
+            if (!searchTerm) {
+
+                displayDocuments(
+                    allDocs.slice(0, 10)
+                );
+
+                return;
+
+            }
 
 
-            return;
-        }
+            // ------------------------------------------------
+            // Search
+            // ------------------------------------------------
+
+            const results =
+                allDocs.filter(
+                    doc => {
+
+                        return (
+
+                            String(
+                                doc.docNo || ""
+                            )
+                                .toLowerCase()
+                                .includes(
+                                    searchTerm
+                                )
+
+                            ||
+
+                            String(
+                                doc.title || ""
+                            )
+                                .toLowerCase()
+                                .includes(
+                                    searchTerm
+                                )
+
+                            ||
+
+                            String(
+                                doc.project || ""
+                            )
+                                .toLowerCase()
+                                .includes(
+                                    searchTerm
+                                )
+
+                            ||
+
+                            String(
+                                doc.status || ""
+                            )
+                                .toLowerCase()
+                                .includes(
+                                    searchTerm
+                                )
+
+                            ||
+
+                            String(
+                                doc.trade || ""
+                            )
+                                .toLowerCase()
+                                .includes(
+                                    searchTerm
+                                )
+
+                            ||
+
+                            String(
+                                doc.category || ""
+                            )
+                                .toLowerCase()
+                                .includes(
+                                    searchTerm
+                                )
+
+                            ||
+
+                            String(
+                                doc.revision || ""
+                            )
+                                .toLowerCase()
+                                .includes(
+                                    searchTerm
+                                )
+
+                            ||
+
+                            String(
+                                doc.ballInCourt || ""
+                            )
+                                .toLowerCase()
+                                .includes(
+                                    searchTerm
+                                )
+
+                            ||
+
+                            String(
+                                doc.activityId || ""
+                            )
+                                .toLowerCase()
+                                .includes(
+                                    searchTerm
+                                )
+
+                            ||
+
+                            String(
+                                doc.activityName || ""
+                            )
+                                .toLowerCase()
+                                .includes(
+                                    searchTerm
+                                )
+
+                            ||
+
+                            String(
+                                doc.preparedBy || ""
+                            )
+                                .toLowerCase()
+                                .includes(
+                                    searchTerm
+                                )
+
+                            ||
+
+                            String(
+                                doc.submittedBy || ""
+                            )
+                                .toLowerCase()
+                                .includes(
+                                    searchTerm
+                                )
+
+                            ||
+
+                            String(
+                                doc.fileName || ""
+                            )
+                                .toLowerCase()
+                                .includes(
+                                    searchTerm
+                                )
+
+                            ||
+
+                            String(
+                                doc.uploadedBy || ""
+                            )
+                                .toLowerCase()
+                                .includes(
+                                    searchTerm
+                                )
+
+                        );
+
+                    }
+                );
 
 
-        const results = allDocs.filter(doc => {
-
-
-            return (
-                String(doc.docNo || "")
-                    .toLowerCase()
-                    .includes(searchTerm) ||
-
-
-                String(doc.title || "")
-                    .toLowerCase()
-                    .includes(searchTerm) ||
-
-
-                String(doc.project || "")
-                    .toLowerCase()
-                    .includes(searchTerm) ||
-
-
-                String(doc.status || "")
-                    .toLowerCase()
-                    .includes(searchTerm) ||
-
-
-                String(doc.trade || "")
-                    .toLowerCase()
-                    .includes(searchTerm) ||
-
-
-                String(doc.category || "")
-                    .toLowerCase()
-                    .includes(searchTerm)
+            console.log(
+                "Search:",
+                searchTerm
             );
 
 
-        });
+            console.log(
+                "Results:",
+                results.length
+            );
 
 
-        console.log("Search:", searchTerm);
-        console.log("Results:", results.length);
+            displayDocuments(
+                results
+            );
 
+        }
+    );
 
-        displayDocuments(results);
-
-
-    });
 }
 
 
-
-
-// =========================
-// Start Dashboard
-// =========================
-
+// ============================================================
+// START DASHBOARD
+// ============================================================
 
 loadDashboard();
