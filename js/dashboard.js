@@ -303,8 +303,7 @@ async function loadDashboard() {
     try {
 
         const response =
-            await fetch(DOCUMENTS_API_URL, 
-                        REPORTS_API_URL,{
+            await fetch(DOCUMENTS_API_URL, {
 
                 method: "GET",
 
