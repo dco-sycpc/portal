@@ -1,21 +1,22 @@
-// ==========================================
+```javascript
+// ============================================================
 // SYC DOCUMENT PORTAL
 // REPORT MANAGEMENT
 // GOOGLE DRIVE + GOOGLE SHEET
-// ==========================================
+// ============================================================
 
 
-// ------------------------------------------
+// ============================================================
 // GOOGLE APPS SCRIPT WEB APP
-// ------------------------------------------
+// ============================================================
 
 const GOOGLE_UPLOAD_URL =
     "https://script.google.com/macros/s/AKfycbzwH25sgO75tDQ-CsL2MArWCRdyyOpF3NKOW_UtlBJQjYw0M5KV32mLLqVolJgk_Tuy/exec";
 
 
-// ------------------------------------------
+// ============================================================
 // ELEMENTS
-// ------------------------------------------
+// ============================================================
 
 const reportForm =
     document.getElementById("reportForm");
@@ -29,25 +30,28 @@ const uploadStatus =
 const reportTableBody =
     document.getElementById("reportTableBody");
 
+const searchInput =
+    document.getElementById("searchInput");
 
-// ------------------------------------------
+
+// ============================================================
 // REPORT DATA
-// ------------------------------------------
+// ============================================================
 
 let reports = [];
 
 
-// ------------------------------------------
+// ============================================================
 // STORAGE KEY
-// ------------------------------------------
+// ============================================================
 
 const REPORT_STORAGE_KEY =
     "syc_reports";
 
 
-// ------------------------------------------
+// ============================================================
 // CURRENT USER
-// ------------------------------------------
+// ============================================================
 
 let currentUser =
     localStorage.getItem("username") ||
@@ -55,9 +59,128 @@ let currentUser =
     "Unknown User";
 
 
-// ------------------------------------------
+// ============================================================
+// NORMALIZE REPORT
+// ============================================================
+// Converts Google Sheet field names such as:
+//
+// ReportNo
+// FileLink
+// UploadedDate
+//
+// into the standard JavaScript format:
+//
+// reportNo
+// fileLink
+// uploadedDate
+//
+// This prevents field-name/capitalization problems after
+// refreshing the Reports page.
+// ============================================================
+
+function normalizeReport(report) {
+
+    if (!report) {
+        return {};
+    }
+
+    return {
+
+        id:
+            report.id ||
+            report.ID ||
+            "",
+
+        reportNo:
+            report.reportNo ||
+            report.ReportNo ||
+            "",
+
+        category:
+            report.category ||
+            report.Category ||
+            "",
+
+        title:
+            report.title ||
+            report.Title ||
+            "",
+
+        project:
+            report.project ||
+            report.Project ||
+            "",
+
+        reportingPeriod:
+            report.reportingPeriod ||
+            report.ReportingPeriod ||
+            "",
+
+        reportDate:
+            report.reportDate ||
+            report.ReportDate ||
+            "",
+
+        preparedBy:
+            report.preparedBy ||
+            report.PreparedBy ||
+            "",
+
+        department:
+            report.department ||
+            report.Department ||
+            "",
+
+        remarks:
+            report.remarks ||
+            report.Remarks ||
+            "",
+
+        fileName:
+            report.fileName ||
+            report.FileName ||
+            "",
+
+        fileId:
+            report.fileId ||
+            report.FileId ||
+            "",
+
+        fileLink:
+            report.fileLink ||
+            report.FileLink ||
+            report.fileUrl ||
+            report.FileUrl ||
+            "",
+
+        fileSize:
+            report.fileSize ||
+            report.FileSize ||
+            "",
+
+        fileType:
+            report.fileType ||
+            report.FileType ||
+            "",
+
+        uploadedBy:
+            report.uploadedBy ||
+            report.UploadedBy ||
+            "",
+
+        uploadedDate:
+            report.uploadedDate ||
+            report.UploadedDate ||
+            ""
+
+    };
+
+}
+
+
+// ============================================================
 // LOAD REPORTS
-// ------------------------------------------
+// ============================================================
 
 async function loadReports() {
 
@@ -71,7 +194,11 @@ async function loadReports() {
 
         const response =
             await fetch(
-                GOOGLE_UPLOAD_URL
+                GOOGLE_UPLOAD_URL,
+                {
+                    method: "GET",
+                    cache: "no-store"
+                }
             );
 
 
@@ -89,20 +216,51 @@ async function loadReports() {
             await response.json();
 
 
+        console.log(
+            "Google Apps Script reports response:",
+            result
+        );
+
+
         if (
             result.success &&
             Array.isArray(result.reports)
         ) {
 
+            // --------------------------------------
+            // NORMALIZE GOOGLE SHEET DATA
+            // --------------------------------------
+
             reports =
-                result.reports;
+                result.reports.map(
+                    normalizeReport
+                );
+
+
+            // --------------------------------------
+            // SAVE THE LATEST SERVER DATA LOCALLY
+            // --------------------------------------
+
+            saveReports(
+                reports
+            );
+
+
+            // --------------------------------------
+            // DISPLAY REPORTS
+            // --------------------------------------
 
             renderReports(
                 reports
             );
 
-            uploadStatus.style.display =
-                "none";
+
+            if (uploadStatus) {
+
+                uploadStatus.style.display =
+                    "none";
+
+            }
 
         }
 
@@ -114,8 +272,13 @@ async function loadReports() {
                 []
             );
 
-            uploadStatus.style.display =
-                "none";
+
+            if (uploadStatus) {
+
+                uploadStatus.style.display =
+                    "none";
+
+            }
 
         }
 
@@ -129,9 +292,9 @@ async function loadReports() {
         );
 
 
-        // ----------------------------------
+        // --------------------------------------
         // FALLBACK TO LOCAL STORAGE
-        // ----------------------------------
+        // --------------------------------------
 
         const storedReports =
             localStorage.getItem(
@@ -143,14 +306,24 @@ async function loadReports() {
 
             try {
 
-                reports =
+                const parsedReports =
                     JSON.parse(
                         storedReports
                     );
 
+
+                reports =
+                    Array.isArray(parsedReports)
+                        ? parsedReports.map(
+                            normalizeReport
+                        )
+                        : [];
+
+
                 renderReports(
                     reports
                 );
+
 
                 showStatus(
                     "Unable to connect to Google Sheet. Showing locally saved reports.",
@@ -161,11 +334,18 @@ async function loadReports() {
 
             catch (storageError) {
 
+                console.error(
+                    "Local storage error:",
+                    storageError
+                );
+
+
                 reports = [];
 
                 renderReports(
                     []
                 );
+
 
                 showStatus(
                     "Unable to load reports.",
@@ -184,6 +364,7 @@ async function loadReports() {
                 []
             );
 
+
             showStatus(
                 "Unable to load reports: " +
                 error.message,
@@ -197,30 +378,43 @@ async function loadReports() {
 }
 
 
-// ------------------------------------------
+// ============================================================
 // SAVE REPORTS LOCALLY
-// ------------------------------------------
+// ============================================================
 
 function saveReports(
     reportList
 ) {
 
-    localStorage.setItem(
+    try {
 
-        REPORT_STORAGE_KEY,
+        localStorage.setItem(
 
-        JSON.stringify(
-            reportList
-        )
+            REPORT_STORAGE_KEY,
 
-    );
+            JSON.stringify(
+                reportList
+            )
+
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Unable to save reports locally:",
+            error
+        );
+
+    }
 
 }
 
 
-// ------------------------------------------
+// ============================================================
 // GENERATE REPORT ID
-// ------------------------------------------
+// ============================================================
 
 function generateReportId() {
 
@@ -239,9 +433,9 @@ function generateReportId() {
 }
 
 
-// ------------------------------------------
+// ============================================================
 // FORMAT DATE
-// ------------------------------------------
+// ============================================================
 
 function formatDate(
     dateString
@@ -283,9 +477,9 @@ function formatDate(
 }
 
 
-// ------------------------------------------
+// ============================================================
 // SHOW STATUS
-// ------------------------------------------
+// ============================================================
 
 function showStatus(
     message,
@@ -321,9 +515,9 @@ function showStatus(
 }
 
 
-// ------------------------------------------
+// ============================================================
 // CONVERT FILE TO BASE64
-// ------------------------------------------
+// ============================================================
 
 function fileToBase64(
     file
@@ -404,16 +598,15 @@ function fileToBase64(
 }
 
 
-// ------------------------------------------
+// ============================================================
 // UPLOAD REPORT TO GOOGLE DRIVE
 // AND SAVE TO GOOGLE SHEET
-// ------------------------------------------
+// ============================================================
 
 async function uploadToGoogleDrive(
     file,
     reportData
 ) {
-
 
     // --------------------------------------
     // CONVERT FILE
@@ -538,7 +731,7 @@ async function uploadToGoogleDrive(
 
 
     console.log(
-        "Google Apps Script response:",
+        "Google Apps Script upload response:",
         result
     );
 
@@ -562,9 +755,9 @@ async function uploadToGoogleDrive(
 }
 
 
-// ------------------------------------------
+// ============================================================
 // FORM SUBMIT
-// ------------------------------------------
+// ============================================================
 
 if (reportForm) {
 
@@ -712,6 +905,23 @@ if (reportForm) {
 
 
                 // ----------------------------
+                // VALIDATE DRIVE RESPONSE
+                // ----------------------------
+
+                if (
+                    !driveResult.fileUrl &&
+                    !driveResult.fileId
+                ) {
+
+                    console.warn(
+                        "Upload succeeded but no Drive file URL/ID was returned.",
+                        driveResult
+                    );
+
+                }
+
+
+                // ----------------------------
                 // CREATE LOCAL DISPLAY RECORD
                 // ----------------------------
 
@@ -748,13 +958,16 @@ if (reportForm) {
                         reportData.remarks,
 
                     fileName:
-                        driveResult.fileName,
+                        driveResult.fileName ||
+                        file.name,
 
                     fileId:
-                        driveResult.fileId,
+                        driveResult.fileId ||
+                        "",
 
                     fileLink:
-                        driveResult.fileUrl,
+                        driveResult.fileUrl ||
+                        "",
 
                     fileSize:
                         file.size,
@@ -772,11 +985,21 @@ if (reportForm) {
 
 
                 // ----------------------------
+                // NORMALIZE RECORD
+                // ----------------------------
+
+                const normalizedReport =
+                    normalizeReport(
+                        report
+                    );
+
+
+                // ----------------------------
                 // ADD TO LOCAL ARRAY
                 // ----------------------------
 
                 reports.push(
-                    report
+                    normalizedReport
                 );
 
 
@@ -853,9 +1076,9 @@ if (reportForm) {
 }
 
 
-// ------------------------------------------
+// ============================================================
 // CLEAR BUTTON
-// ------------------------------------------
+// ============================================================
 
 if (clearButton) {
 
@@ -863,10 +1086,20 @@ if (clearButton) {
         "click",
         function() {
 
-            reportForm.reset();
+            if (reportForm) {
 
-            uploadStatus.style.display =
-                "none";
+                reportForm.reset();
+
+            }
+
+
+            if (uploadStatus) {
+
+                uploadStatus.style.display =
+                    "none";
+
+            }
+
 
             setTodayDate();
 
@@ -876,9 +1109,88 @@ if (clearButton) {
 }
 
 
-// ------------------------------------------
+// ============================================================
+// SEARCH REPORTS
+// ============================================================
+
+if (searchInput) {
+
+    searchInput.addEventListener(
+        "input",
+        function() {
+
+            const searchTerm =
+                searchInput.value
+                    .trim()
+                    .toLowerCase();
+
+
+            if (!searchTerm) {
+
+                renderReports(
+                    reports
+                );
+
+                return;
+
+            }
+
+
+            const filteredReports =
+                reports.filter(
+                    function(report) {
+
+                        const searchableText =
+                            [
+
+                                report.reportNo,
+
+                                report.category,
+
+                                report.title,
+
+                                report.project,
+
+                                report.reportingPeriod,
+
+                                report.reportDate,
+
+                                report.preparedBy,
+
+                                report.department,
+
+                                report.remarks,
+
+                                report.fileName,
+
+                                report.uploadedBy
+
+                            ]
+                            .join(" ")
+                            .toLowerCase();
+
+
+                        return searchableText.includes(
+                            searchTerm
+                        );
+
+                    }
+                );
+
+
+            renderReports(
+                filteredReports
+            );
+
+        }
+    );
+
+}
+
+
+// ============================================================
 // RENDER REPORT TABLE
-// ------------------------------------------
+// ============================================================
 
 function renderReports(
     reportList
@@ -917,7 +1229,7 @@ function renderReports(
                     "
                 >
 
-                    No reports uploaded yet.
+                    No reports found.
 
                 </td>
 
@@ -941,7 +1253,6 @@ function renderReports(
     sortedReports.forEach(
         function(report) {
 
-
             const row =
                 document.createElement(
                     "tr"
@@ -952,35 +1263,68 @@ function renderReports(
             // FILE LINK
             // --------------------------------
 
-            const fileCell =
-                report.fileLink
+            let fileCell;
 
-                    ? `
 
-                        <a
-                            class="view-link"
-                            href="${escapeHTML(
-                                report.fileLink
-                            )}"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            View File
-                        </a>
+            if (report.fileLink) {
 
-                    `
+                fileCell = `
 
-                    : `
+                    <a
+                        class="view-link"
+                        href="${escapeHTML(
+                            report.fileLink
+                        )}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        View File
+                    </a>
 
-                        <span
-                            style="
-                                color:#6b7280;
-                            "
-                        >
-                            No File
-                        </span>
+                `;
 
-                    `;
+            }
+
+            else if (report.fileId) {
+
+                const generatedLink =
+                    "https://drive.google.com/file/d/" +
+                    encodeURIComponent(
+                        report.fileId
+                    ) +
+                    "/view";
+
+
+                fileCell = `
+
+                    <a
+                        class="view-link"
+                        href="${generatedLink}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        View File
+                    </a>
+
+                `;
+
+            }
+
+            else {
+
+                fileCell = `
+
+                    <span
+                        style="
+                            color:#6b7280;
+                        "
+                    >
+                        No File
+                    </span>
+
+                `;
+
+            }
 
 
             // --------------------------------
@@ -1016,37 +1360,32 @@ function renderReports(
                 <td>
                     ${escapeHTML(
                         report.reportingPeriod ||
-                        report.ReportingPeriod ||
                         "-"
                     )}
                 </td>
 
                 <td>
                     ${formatDate(
-                        report.reportDate ||
-                        report.ReportDate
+                        report.reportDate
                     )}
                 </td>
 
                 <td>
                     ${escapeHTML(
-                        report.preparedBy ||
-                        report.PreparedBy
+                        report.preparedBy
                     )}
                 </td>
 
                 <td>
                     ${escapeHTML(
                         report.department ||
-                        report.Department ||
                         "-"
                     )}
                 </td>
 
                 <td>
                     ${formatDate(
-                        report.uploadedDate ||
-                        report.UploadedDate
+                        report.uploadedDate
                     )}
                 </td>
 
@@ -1067,9 +1406,9 @@ function renderReports(
 }
 
 
-// ------------------------------------------
+// ============================================================
 // SET TODAY'S DATE
-// ------------------------------------------
+// ============================================================
 
 function setTodayDate() {
 
@@ -1098,9 +1437,9 @@ function setTodayDate() {
 }
 
 
-// ------------------------------------------
+// ============================================================
 // ESCAPE HTML
-// ------------------------------------------
+// ============================================================
 
 function escapeHTML(
     value
@@ -1146,10 +1485,11 @@ function escapeHTML(
 }
 
 
-// ------------------------------------------
+// ============================================================
 // INITIALIZE
-// ------------------------------------------
+// ============================================================
 
 setTodayDate();
 
 loadReports();
+```
