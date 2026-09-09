@@ -1,4 +1,3 @@
-```javascript
 // ============================================================
 // SYC DOCUMENT PORTAL
 // REPORT MANAGEMENT
