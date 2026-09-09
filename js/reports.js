@@ -10,7 +10,7 @@
 // ------------------------------------------
 
 const GOOGLE_UPLOAD_URL =
-    "https://script.google.com/macros/s/AKfycbxRqNkwT5SkrW-dy8yu4XTpt-JeS8Jx28a_GdGq5lFhGdobot0kAlgH1LnadAS4vBYq/exec";
+    "https://script.google.com/macros/s/AKfycbzwH25sgO75tDQ-CsL2MArWCRdyyOpF3NKOW_UtlBJQjYw0M5KV32mLLqVolJgk_Tuy/exec";
 
 
 // ------------------------------------------
