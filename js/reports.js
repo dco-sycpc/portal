@@ -1491,4 +1491,3 @@ function escapeHTML(
 setTodayDate();
 
 loadReports();
-```
