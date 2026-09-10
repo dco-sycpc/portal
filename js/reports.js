@@ -886,6 +886,13 @@ if (reportForm) {
 
                 };
 
+                console.log("========== REPORT DATA BEING SENT ==========");
+                console.log("Report No:", reportData.reportNo);
+                console.log("Reporting Period:", reportData.reportingPeriod);
+                console.log("Report Date:", reportData.reportDate);
+                console.log("Prepared By:", reportData.preparedBy);
+                console.log("============================================");
+
 
                 // ----------------------------
                 // UPLOAD
